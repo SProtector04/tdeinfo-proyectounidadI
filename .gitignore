@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Base de datos local (se genera en runtime)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Variables de entorno (nunca versionar secretos)
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

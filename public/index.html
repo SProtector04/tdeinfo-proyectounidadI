@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tablero - Centro del Quesillo</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="nav"></div>
+  <main>
+    <h1>Tablero de decisiones</h1>
+    <div class="grid cols-3" id="stats"></div>
+
+    <h2>Ingresos (ultimos 7 dias)</h2>
+    <div class="card"><div class="bars" id="revenue-bars"></div></div>
+
+    <div class="grid cols-2">
+      <div>
+        <h2>Productos mas vendidos</h2>
+        <div class="card" id="top-products"></div>
+      </div>
+      <div>
+        <h2>Recomendacion de produccion (proximo dia)</h2>
+        <div class="card" id="recommendations"></div>
+      </div>
+    </div>
+
+    <h2>Alertas pendientes</h2>
+    <div class="card" id="alerts"></div>
+  </main>
+  <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

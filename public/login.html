@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingreso - Centro del Quesillo</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main class="auth-wrap">
+    <div class="card">
+      <h1>Centro del Quesillo</h1>
+      <p class="muted">Ingresa para continuar</p>
+      <form id="login-form">
+        <label for="username">Usuario</label>
+        <input id="username" name="username" autocomplete="username" required />
+        <label for="password">Contrasena</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <p id="error" class="error"></p>
+        <button type="submit" style="margin-top: 12px; width: 100%">Ingresar</button>
+      </form>
+      <p class="muted" style="margin-top:16px; font-size:0.8rem">
+        Demo: <strong>admin / admin123</strong> (administrador) o <strong>cajero / cajero123</strong> (cajero).
+      </p>
+    </div>
+  </main>
+  <script type="module" src="/js/login.js"></script>
+</body>
+</html>
