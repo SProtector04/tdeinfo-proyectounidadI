@@ -58,7 +58,7 @@ Al primer arranque se siembran (idempotente):
 - **Productos** (quesillo sencillo/con crema/doble, tiste, cacao, fresco) con sus recetas.
 
 
-## 11. Estructura del proyecto
+## Estructura del proyecto
 
 ```
 centrodelquesillo/
@@ -77,13 +77,13 @@ centrodelquesillo/
 ```
 
 
-## 12. Limitaciones y evolucion a produccion
+## Limitaciones y evolucion a produccion
 
 - Autenticacion por token de sesion simple (sin refresh tokens ni bloqueo de intentos).
 - Sin HTTPS (se resuelve con un proxy inverso / la plataforma de despliegue).
 - SQLite es adecuado para un solo negocio; a escala multi-sucursal se migraria a PostgreSQL.
 - La recomendacion es una SMA; se podria evolucionar a un modelo de series temporales.
 
-## 13. Licencia
+## Licencia
 
 MIT. Ver `LICENSE`.
