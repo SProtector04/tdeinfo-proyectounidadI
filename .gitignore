@@ -1,7 +1,10 @@
 # Dependencias
 node_modules/
 
-# Base de datos local (se genera en runtime)
+# Pruebas (locales, no versionadas)
+test/
+
+# Datos variables locales (nunca versionar; en produccion viven en el volumen Docker)
 data/
 *.db
 *.db-wal
@@ -19,3 +22,6 @@ npm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Archivos de registro
+.atl/

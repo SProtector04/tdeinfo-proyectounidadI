@@ -4,7 +4,7 @@ import {
   ValidationError,
   assertPositive,
 } from '../../domain/errors.js';
-import { Sale, SaleItem, SALE_STATUS } from '../../domain/entities/sale.js';
+import { SaleItem, SALE_STATUS } from '../../domain/entities/sale.js';
 import { Ingredient } from '../../domain/entities/ingredient.js';
 import { round3 } from '../../domain/units.js';
 
@@ -26,7 +26,7 @@ export class RegisterSale {
     this.transaction = transaction;
   }
 
-  execute({ userId, customerName = null, items }) {
+  async execute({ userId, customerName = null, items }) {
     if (!Array.isArray(items) || items.length === 0) {
       throw new ValidationError('La venta debe tener al menos un producto');
     }
@@ -38,14 +38,14 @@ export class RegisterSale {
 
     // Cargar productos (con receta) e insumos involucrados.
     const productIds = [...new Set(normalized.map((i) => i.productId))];
-    const products = this.catalogRepository.findProductsByIds(productIds);
+    const products = await this.catalogRepository.findProductsByIds(productIds);
     const productsById = new Map(products.map((p) => [p.id, p]));
     for (const id of productIds) {
       if (!productsById.has(id)) throw new NotFoundError(`Producto no encontrado: #${id}`);
     }
 
     const ingredientIds = [...new Set(products.flatMap((p) => p.recipe.map((r) => r.ingredientId)))];
-    const ingredients = this.catalogRepository.findIngredientsByIds(ingredientIds);
+    const ingredients = await this.catalogRepository.findIngredientsByIds(ingredientIds);
     const ingredientsById = new Map(ingredients.map((i) => [i.id, i]));
 
     // Calcular consumo total y verificar stock.
@@ -78,7 +78,7 @@ export class RegisterSale {
 
     // Calcular stock resultante y alertas solo para insumos afectados.
     const avgDaily = new Map(
-      this.inventoryRepository.avgConsumptionByIngredient(7).map((r) => [r.ingredientId, r.avg]),
+      (await this.inventoryRepository.avgConsumptionByIngredient(7)).map((r) => [r.ingredientId, r.avg]),
     );
     const postStock = new Map();
     const alerts = [];
@@ -101,14 +101,14 @@ export class RegisterSale {
 
     // Persistir atomicamente.
     let saleId;
-    this.transaction(() => {
-      saleId = this.salesRepository.create({
+    await this.transaction(async () => {
+      saleId = await this.salesRepository.create({
         userId,
         customerName,
         totalCents,
         status: SALE_STATUS.COMPLETED,
       });
-      this.salesRepository.createItems(
+      await this.salesRepository.createItems(
         saleId,
         saleItems.map((i) => ({
           productId: i.productId,
@@ -118,8 +118,8 @@ export class RegisterSale {
         })),
       );
       for (const [ingredientId, used] of consumption.entries()) {
-        this.catalogRepository.updateIngredientStock(ingredientId, postStock.get(ingredientId));
-        this.inventoryRepository.addMovement({
+        await this.catalogRepository.updateIngredientStock(ingredientId, postStock.get(ingredientId));
+        await this.inventoryRepository.addMovement({
           ingredientId,
           type: 'CONSUMO',
           quantity: used,
@@ -128,13 +128,13 @@ export class RegisterSale {
         });
       }
       for (const alert of alerts) {
-        this.inventoryRepository.createAlert({
+        await this.inventoryRepository.createAlert({
           type: alert.type,
           severity: alert.severity,
           message: alert.message,
         });
       }
-      this.inventoryRepository.addAudit({
+      await this.inventoryRepository.addAudit({
         userId,
         action: 'SALE',
         entity: 'sale',
@@ -155,7 +155,7 @@ export class ListSales {
     this.salesRepository = salesRepository;
   }
 
-  execute({ limit = 50 } = {}) {
+  async execute({ limit = 50 } = {}) {
     return this.salesRepository.list({ limit });
   }
 }

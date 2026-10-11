@@ -6,7 +6,7 @@ export class ListProducts {
     this.catalogRepository = catalogRepository;
   }
 
-  execute() {
+  async execute() {
     return this.catalogRepository.listProducts();
   }
 }
@@ -18,17 +18,17 @@ export class CreateProduct {
     this.transaction = transaction;
   }
 
-  execute({ name, category, priceCents, recipe = [], userId }) {
+  async execute({ name, category, priceCents, recipe = [], userId }) {
     const product = new Product({ name, category, price: priceCents, recipe });
     let id;
-    this.transaction(() => {
-      id = this.catalogRepository.createProduct({
+    await this.transaction(async () => {
+      id = await this.catalogRepository.createProduct({
         name: product.name,
         category: product.category,
         priceCents: product.price.cents,
         recipe: product.recipe,
       });
-      this.inventoryRepository.addAudit({
+      await this.inventoryRepository.addAudit({
         userId,
         action: 'CREATE',
         entity: 'product',
@@ -45,7 +45,7 @@ export class ListIngredients {
     this.catalogRepository = catalogRepository;
   }
 
-  execute() {
+  async execute() {
     return this.catalogRepository.listIngredients();
   }
 }
@@ -57,18 +57,18 @@ export class CreateIngredient {
     this.transaction = transaction;
   }
 
-  execute({ name, unit, stock, minStock, costCents, userId }) {
+  async execute({ name, unit, stock, minStock, costCents, userId }) {
     const ingredient = new Ingredient({ name, unit, stock, minStock, cost: costCents });
     let id;
-    this.transaction(() => {
-      id = this.catalogRepository.createIngredient({
+    await this.transaction(async () => {
+      id = await this.catalogRepository.createIngredient({
         name: ingredient.name,
         unit: ingredient.unit,
         stock: ingredient.stock,
         minStock: ingredient.minStock,
         costCents: ingredient.cost.cents,
       });
-      this.inventoryRepository.addAudit({
+      await this.inventoryRepository.addAudit({
         userId,
         action: 'CREATE',
         entity: 'ingredient',

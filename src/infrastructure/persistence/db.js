@@ -1,28 +1,50 @@
-import Database from 'better-sqlite3';
-import fs from 'node:fs';
-import path from 'node:path';
+import pg from 'pg';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 /**
- * Crea (o abre) la conexion a SQLite.
+ * Crea un pool de conexiones a PostgreSQL y expone un facade `db.query` que
+ * enruta automaticamente al cliente de la transaccion activa (si la hay) o al
+ * pool (fuera de transaccion).
  *
- * - `WAL` permite lecturas concurrentes con una unica escritora (conveniente
- *   porque el contenedor SQLite y la app comparten el mismo archivo).
- * - `foreign_keys = ON` garantiza integridad referencial.
+ * `AsyncLocalStorage` guarda el cliente dedicado durante una transaccion para
+ * que los repositorios (que reciben `db`) usen siempre la misma conexion.
  */
-export function createConnection(databasePath) {
-  if (databasePath !== ':memory:') {
-    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+export function createConnection(connectionString) {
+  const pool = new pg.Pool({ connectionString });
+  const als = new AsyncLocalStorage();
+
+  async function query(text, params = []) {
+    const client = als.getStore();
+    const result = client
+      ? await client.query(text, params)
+      : await pool.query(text, params);
+    return result.rows;
   }
-  const db = new Database(databasePath);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
-  return db;
+
+  return {
+    pool,
+    query,
+    _runInTransaction: (client, fn) => als.run(client, fn),
+  };
 }
 
 /**
- * Ejecuta un bloque dentro de una transaccion SQLite. Se inyecta en los casos
- * de uso que requieren atomicidad (ventas, ajustes).
+ * Ejecuta un bloque dentro de una transaccion. Se inyecta en los casos de uso
+ * que requieren atomicidad (ventas, ajustes, creacion de entidades).
  */
 export function makeTransaction(db) {
-  return (fn) => db.transaction(fn)();
+  return async (fn) => {
+    const client = await db.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await db._runInTransaction(client, fn);
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  };
 }

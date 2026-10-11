@@ -2,16 +2,16 @@
 
 ## Alternativas consideradas
 
-| Criterio | Web + SQLite + Node (elegida) | Movil nativa | Escritorio |
+| Criterio | Web + PostgreSQL + Node (elegida) | Movil nativa | Escritorio |
 | --- | --- | --- | --- |
 | Usuarios | Cajeros y gerente en el local (PC/tablet) | Necesita dispositivos por empleado | Una sola PC fija |
 | Conectividad | Solo local (LAN), bajo costo | Depende de tiendas/app stores | Instalacion manual |
 | Costo | Bajo (open source, sin licencias) | Mayor (SDKs, stores) | Bajo |
-| Escalabilidad | A mediano plazo (migrar DB) | Buena | Limitada |
+| Escalabilidad | Buena (crece a mas sucursales) | Buena | Limitada |
 | Tiempo de desarrollo | Corto (ideal para el prototipo) | Largo | Medio |
 
-**Seleccion**: aplicacion **web** con `Node.js + Express` y `SQLite`, desplegada
-con **Docker Compose**.
+**Seleccion**: aplicacion **web** con `Node.js + Express` y `PostgreSQL`,
+desplegada con **Docker Compose**.
 
 ## Por que web
 
@@ -19,13 +19,14 @@ con **Docker Compose**.
 - Permite separar claramente API (negocio) de interfaz (presentacion).
 - Facil de probar, versionar y desplegar de forma reproducible (Docker).
 
-## Por que SQLite
+## Por que PostgreSQL
 
-- Proceso de bajo volumen y un solo punto de venta: no se necesita un motor
-  cliente-servidor.
-- Cero administracion (un archivo), respaldo trivial (copiar el archivo).
-- Suficiente para el prototipo; el puerto `Repository` aísla la app de un futuro
-  cambio a PostgreSQL.
+- Base de datos relacional **cliente-servidor**, estandar y con SQL completo,
+  adecuada para crecer a multiples puntos de venta o sucursales.
+- Transacciones ACID, integridad referencial y concurrencia (varios cajeros
+  escribiendo a la vez) sin los bloqueos de un archivo compartido.
+- Se despliega facilmente con la imagen oficial (`postgres:16-alpine`); el
+  puerto `Repository` aísla la app del motor concreto, facilitando el reemplazo.
 
 ## Por que Node.js
 

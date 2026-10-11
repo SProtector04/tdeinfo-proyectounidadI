@@ -6,7 +6,7 @@ export function loadConfig(env = process.env) {
   return {
     nodeEnv: env.NODE_ENV ?? 'development',
     port: Number(env.PORT ?? 3000),
-    databasePath: env.DATABASE_PATH ?? 'data/cdq.db',
+    databaseUrl: env.DATABASE_URL ?? 'postgresql://cdq:cdq@localhost:5432/cdq',
     sessionSecret: env.SESSION_SECRET ?? 'dev-secret-cambiar-en-produccion',
     sessionTtlMs: Number(env.SESSION_TTL_MS ?? 8 * 60 * 60 * 1000),
     admin: {

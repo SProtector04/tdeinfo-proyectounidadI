@@ -1,6 +1,8 @@
 # Matriz de pruebas
 
-Ejecucion: `npm test` (runner `node:test`).
+Ejecucion: `npm test` (runner `node:test`). Requiere un PostgreSQL corriendo
+(`docker compose up -d db`); el test de integracion hace `TRUNCATE` de las tablas
+antes de cada caso, por lo que debe apuntar a una base desechable.
 
 | ID | Requisito | Tipo | Datos | Resultado esperado | Resultado obtenido | Estado |
 | --- | --- | --- | --- | --- | --- | --- |

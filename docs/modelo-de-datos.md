@@ -19,12 +19,12 @@ erDiagram
     text password_hash
     text role
     int active
-    text created_at
+    timestamp created_at
   }
   SESSIONS {
     text token_hash PK
     int user_id FK
-    text expires_at
+    timestamp expires_at
   }
   PRODUCTS {
     int id PK
@@ -37,15 +37,15 @@ erDiagram
     int id PK
     text name
     text unit
-    real stock
-    real min_stock
+    double_precision stock
+    double_precision min_stock
     int cost_cents
     int active
   }
   PRODUCT_INGREDIENTS {
     int product_id PK,FK
     int ingredient_id PK,FK
-    real quantity
+    double_precision quantity
   }
   SALES {
     int id PK
@@ -53,13 +53,13 @@ erDiagram
     text customer_name
     int total_cents
     text status
-    text created_at
+    timestamp created_at
   }
   SALE_ITEMS {
     int id PK
     int sale_id FK
     int product_id FK
-    real quantity
+    double_precision quantity
     int unit_price_cents
     int subtotal_cents
   }
@@ -67,10 +67,10 @@ erDiagram
     int id PK
     int ingredient_id FK
     text type
-    real quantity
+    double_precision quantity
     text reason
     int user_id FK
-    text created_at
+    timestamp created_at
   }
   ALERTS {
     int id PK
@@ -78,8 +78,8 @@ erDiagram
     text severity
     text message
     text status
-    text created_at
-    text resolved_at
+    timestamp created_at
+    timestamp resolved_at
   }
   AUDIT_LOGS {
     int id PK
@@ -88,14 +88,14 @@ erDiagram
     text entity
     int entity_id
     text result
-    text created_at
+    timestamp created_at
   }
 ```
 
 ## Decisiones de diseno
 
 - **Dinero en centavos enteros** (`*_cents`) para evitar errores de punto flotante.
-- **Cantidades REAL redondeadas a 3 decimales** (kg, litro) en la capa de dominio.
+- **Cantidades DOUBLE PRECISION redondeadas a 3 decimales** (kg, litro) en la capa de dominio.
 - **Recetas** en `product_ingredients`: al vender un producto se descuenta
   automaticamente el insumo correspondiente.
 - **Movimientos de inventario** tipados (`ENTRADA`, `SALIDA`, `AJUSTE`,

@@ -1,9 +1,9 @@
 export function salesController({ registerSale, listSales }) {
   return {
-    register(req, res, next) {
+    async register(req, res, next) {
       try {
         const { customerName, items } = req.body ?? {};
-        const result = registerSale.execute({
+        const result = await registerSale.execute({
           userId: req.user.id,
           customerName,
           items,
@@ -14,10 +14,10 @@ export function salesController({ registerSale, listSales }) {
       }
     },
 
-    list(req, res, next) {
+    async list(req, res, next) {
       try {
         const limit = Number(req.query.limit ?? 50);
-        const result = listSales.execute({ limit });
+        const result = await listSales.execute({ limit });
         res.json(result);
       } catch (err) {
         next(err);

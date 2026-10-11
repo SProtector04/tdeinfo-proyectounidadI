@@ -8,23 +8,23 @@ export class AddStock {
     this.transaction = transaction;
   }
 
-  execute({ ingredientId, quantity, reason, userId }) {
+  async execute({ ingredientId, quantity, reason, userId }) {
     const qty = assertPositive(quantity, 'cantidad');
-    const ingredient = this.catalogRepository.findIngredientById(ingredientId);
+    const ingredient = await this.catalogRepository.findIngredientById(ingredientId);
     if (!ingredient) throw new NotFoundError(`Insumo no encontrado: #${ingredientId}`);
 
     const newStock = round3(ingredient.stock + qty);
     let movementId;
-    this.transaction(() => {
-      this.catalogRepository.updateIngredientStock(ingredientId, newStock);
-      movementId = this.inventoryRepository.addMovement({
+    await this.transaction(async () => {
+      await this.catalogRepository.updateIngredientStock(ingredientId, newStock);
+      movementId = await this.inventoryRepository.addMovement({
         ingredientId,
         type: 'ENTRADA',
         quantity: qty,
         reason,
         userId,
       });
-      this.inventoryRepository.addAudit({
+      await this.inventoryRepository.addAudit({
         userId,
         action: 'ADD_STOCK',
         entity: 'ingredient',
@@ -43,24 +43,24 @@ export class AdjustStock {
     this.transaction = transaction;
   }
 
-  execute({ ingredientId, target, reason, userId }) {
+  async execute({ ingredientId, target, reason, userId }) {
     const targetStock = assertNonNegative(target, 'stock objetivo');
-    const ingredient = this.catalogRepository.findIngredientById(ingredientId);
+    const ingredient = await this.catalogRepository.findIngredientById(ingredientId);
     if (!ingredient) throw new NotFoundError(`Insumo no encontrado: #${ingredientId}`);
 
     const delta = round3(targetStock - ingredient.stock);
     if (delta === 0) throw new ValidationError('El ajuste no produce cambios');
 
-    this.transaction(() => {
-      this.catalogRepository.updateIngredientStock(ingredientId, targetStock);
-      this.inventoryRepository.addMovement({
+    await this.transaction(async () => {
+      await this.catalogRepository.updateIngredientStock(ingredientId, targetStock);
+      await this.inventoryRepository.addMovement({
         ingredientId,
         type: 'AJUSTE',
         quantity: delta,
         reason,
         userId,
       });
-      this.inventoryRepository.addAudit({
+      await this.inventoryRepository.addAudit({
         userId,
         action: 'ADJUST_STOCK',
         entity: 'ingredient',
@@ -77,7 +77,7 @@ export class ListMovements {
     this.inventoryRepository = inventoryRepository;
   }
 
-  execute({ limit = 100 } = {}) {
+  async execute({ limit = 100 } = {}) {
     return this.inventoryRepository.listMovements({ limit });
   }
 }
@@ -87,7 +87,7 @@ export class ListAlerts {
     this.inventoryRepository = inventoryRepository;
   }
 
-  execute({ status = null } = {}) {
+  async execute({ status = null } = {}) {
     return this.inventoryRepository.listAlerts({ status });
   }
 }
@@ -98,10 +98,10 @@ export class ResolveAlert {
     this.transaction = transaction;
   }
 
-  execute({ alertId, userId }) {
-    this.transaction(() => {
-      this.inventoryRepository.resolveAlert(alertId);
-      this.inventoryRepository.addAudit({
+  async execute({ alertId, userId }) {
+    await this.transaction(async () => {
+      await this.inventoryRepository.resolveAlert(alertId);
+      await this.inventoryRepository.addAudit({
         userId,
         action: 'RESOLVE_ALERT',
         entity: 'alert',
@@ -118,7 +118,7 @@ export class ListAudit {
     this.inventoryRepository = inventoryRepository;
   }
 
-  execute({ limit = 100 } = {}) {
+  async execute({ limit = 100 } = {}) {
     return this.inventoryRepository.listAudit({ limit });
   }
 }

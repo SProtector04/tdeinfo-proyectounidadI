@@ -1,26 +1,28 @@
 services:
-  # Contenedor SQLite (imagen de Docker Hub): administra el archivo de base de
-  # datos y expone el CLI sqlite3 para consultas, auditorias y respaldos.
+  # Contenedor PostgreSQL (imagen oficial de Docker Hub). Almacena los datos
+  # operativos (variables) en el volumen `pg-data`; los datos fijos de prueba
+  # se siembran desde el codigo (src/infrastructure/persistence/seed.js).
   db:
-    image: nouchka/sqlite3:latest
+    image: postgres:16-alpine
     container_name: cdq-db
     restart: unless-stopped
-    entrypoint: ["/bin/sh", "-c"]
-    # Prepara el volumen y lo deja en propiedad del usuario `node` (uid 1000)
-    # de la aplicacion, y mantiene vivo el CLI sqlite3 para administracion.
-    command:
-      - "mkdir -p /data && chown -R 1000:1000 /data && tail -f /dev/null"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cdq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cdq}
+      POSTGRES_DB: ${POSTGRES_DB:-cdq}
     volumes:
-      - db-data:/data
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD", "sqlite3", "--version"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cdq} -d ${POSTGRES_DB:-cdq}"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
       start_period: 5s
 
-  # Aplicacion Node.js (imagen oficial de Docker Hub). Lee y escribe el mismo
-  # volumen `db-data` que el contenedor SQLite (WAL habilitado).
+  # Aplicacion Node.js (imagen oficial de Docker Hub). Se conecta a PostgreSQL
+  # por red; crea el esquema y siembra los datos de prueba (idempotente).
   app:
     build: .
     container_name: cdq-app
@@ -31,7 +33,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      DATABASE_PATH: /data/cdq.db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cdq}:${POSTGRES_PASSWORD:-cdq}@db:5432/${POSTGRES_DB:-cdq}
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-cambiar-en-produccion}
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
@@ -39,10 +41,8 @@ services:
       CAJERO_USER: ${CAJERO_USER:-cajero}
       CAJERO_PASSWORD: ${CAJERO_PASSWORD:-cajero123}
       CAJERO_NAME: ${CAJERO_NAME:-Cajero Principal}
-    volumes:
-      - db-data:/data
     ports:
       - "${APP_PORT:-3000}:3000"
 
 volumes:
-  db-data:
+  pg-data:

@@ -13,23 +13,24 @@ export class GetDashboard {
     this.recommendationService = recommendationService;
   }
 
-  execute({ days = 7 } = {}) {
-    const today = this.salesRepository.todaySummary();
-    const revenueSeries = this.salesRepository.dailyRevenue(days);
-    const topProducts = this.salesRepository.topProducts(days);
-    const alerts = this.inventoryRepository.listAlerts({ status: 'OPEN' });
+  async execute({ days = 7 } = {}) {
+    const today = await this.salesRepository.todaySummary();
+    const revenueSeries = await this.salesRepository.dailyRevenue(days);
+    const topProducts = await this.salesRepository.topProducts(days);
+    const alerts = await this.inventoryRepository.listAlerts({ status: 'OPEN' });
 
     // Recomendacion de produccion (prediccion por media movil simple).
-    const dailyQuantities = this.salesRepository.dailyQuantitiesByProduct(days);
+    const dailyQuantities = await this.salesRepository.dailyQuantitiesByProduct(days);
     const byProduct = new Map();
     for (const row of dailyQuantities) {
       if (!byProduct.has(row.productId)) byProduct.set(row.productId, []);
       byProduct.get(row.productId).push(row.quantity);
     }
-    const recommendations = this.recommendationService.recommend(byProduct, days).map((r) => {
-      const product = this.catalogRepository.findProductById(r.productId);
-      return { ...r, name: product ? product.name : `Producto #${r.productId}` };
-    });
+    const recommendations = [];
+    for (const r of this.recommendationService.recommend(byProduct, days)) {
+      const product = await this.catalogRepository.findProductById(r.productId);
+      recommendations.push({ ...r, name: product ? product.name : `Producto #${r.productId}` });
+    }
 
     return { today, revenueSeries, topProducts, alerts, recommendations, days };
   }

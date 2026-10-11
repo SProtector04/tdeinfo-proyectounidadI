@@ -23,14 +23,14 @@ flowchart TB
   end
 
   subgraph INFRA["INFRAESTRUCTURA (adaptadores)"]
-    SQL[Repositorios SQLite]
+    SQL[Repositorios PostgreSQL]
     WEB[Servidor web Express]
     AUTH[Servicios auth scrypt/token]
   end
 
   subgraph EXT["MUNDO EXTERIOR"]
     HTTP[Navegador / cliente HTTP]
-    DB[(SQLite)]
+    DB[(PostgreSQL)]
   end
 
   HTTP --> WEB
@@ -49,7 +49,7 @@ flowchart TB
 | --- | --- | --- |
 | `domain` | Entidades, value objects, servicios puros, puertos | nada |
 | `application` | Casos de uso (orquestacion) | `domain` |
-| `infrastructure` | SQLite, auth, Express, controladores | `domain`, `application` |
+| `infrastructure` | PostgreSQL, auth, Express, controladores | `domain`, `application` |
 | `config` | Lectura de variables de entorno | nada |
 
 ## Flujo de una venta (dato -> decision -> accion -> retroalimentacion)
@@ -60,7 +60,7 @@ sequenceDiagram
   participant C as Controlador HTTP
   participant UC as RegisterSale (caso de uso)
   participant D as Servicios de dominio
-  participant R as Repositorios SQLite
+  participant R as Repositorios PostgreSQL
 
   U->>C: POST /api/sales (items)
   C->>UC: execute({items})
@@ -79,17 +79,18 @@ sequenceDiagram
 ## Inversion de dependencias
 
 El unico lugar que conoce las implementaciones concretas es la **raiz de
-composicion** (`src/app.js`). Ahi se instancian los repositorios SQLite, los
+composicion** (`src/app.js`). Ahi se instancian los repositorios PostgreSQL, los
 servicios y los casos de uso, y se inyectan por constructor. Esto permite probar
 los casos de uso con repositorios falsos (ver `test/`).
 
 ## Contenedores (Docker)
 
 ```
-[ cdq-app (node:22-alpine) ]  --lee/escribe-->  [ volumen db-data: /data/cdq.db ]
-[ cdq-db (nouchka/sqlite3) ] --CLI sqlite3-->  [ volumen db-data: /data/cdq.db ]
+[ cdq-app (node:22-alpine) ] --DATABASE_URL (red)--> [ cdq-db (postgres:16-alpine) ]
+                                                       [ volumen pg-data: /var/lib/postgresql/data ]
 ```
 
-Ambos contenedores comparten el volumen `db-data`. La aplicacion es quien crea
-el esquema y siembra los datos (idempotente); el contenedor `db` expone el CLI
-para administracion, consultas y respaldos.
+La aplicacion se conecta a PostgreSQL por red (`DATABASE_URL`) y crea el esquema
+y siembra los datos de prueba (idempotente). El volumen `pg-data` persiste
+unicamente los datos operativos (variables); los datos fijos de prueba viven en
+el codigo (`seed.js`).

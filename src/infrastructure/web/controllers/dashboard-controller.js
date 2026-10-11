@@ -1,8 +1,9 @@
 export function dashboardController({ getDashboard }) {
   return {
-    get(_req, res, next) {
+    async get(_req, res, next) {
       try {
-        res.json(getDashboard.execute());
+        const result = await getDashboard.execute();
+        res.json(result);
       } catch (err) {
         next(err);
       }

@@ -16,15 +16,15 @@ produccion con limites claramente definidos.
 | --- | --- | --- |
 | Runtime | Node.js 22 | `node:22-alpine` (oficial) |
 | Framework web | Express 4 | - |
-| Base de datos | SQLite (via `better-sqlite3`) | `nouchka/sqlite3` (contenedor CLI/admin) |
+| Base de datos | PostgreSQL (via `pg`) | `postgres:16-alpine` (oficial) |
 | Orquestacion | Docker Compose | - |
 | Pruebas | `node:test` (nativo) | - |
 
-> Nota sobre SQLite: es una base de datos **embebida** (un archivo). La
-> aplicacion Node lee/escribe el archivo sobre un volumen compartido `db-data`.
-> El contenedor `db` (imagen `nouchka/sqlite3`) mantiene vivo el CLI `sqlite3`
-> para consultas, auditorias y respaldos: `docker compose exec db sqlite3
-> /data/cdq.db`.
+> Nota sobre PostgreSQL: es una base de datos **cliente-servidor**. El
+> contenedor `db` (imagen `postgres:16-alpine`) persiste los datos operativos
+> (variables) en el volumen `pg-data`; la aplicacion se conecta por red via
+> `DATABASE_URL`. Los datos fijos de prueba se siembran desde el codigo de forma
+> idempotente. Para consultas y respaldos: `docker compose exec db psql -U cdq -d cdq`.
 
 ## Requisitos
 
@@ -44,9 +44,11 @@ Abre `http://localhost:3000`.
 
 ### Local (sin Docker)
 
+Requiere un PostgreSQL corriendo en `localhost:5432` (o ajustar `DATABASE_URL`):
+
 ```bash
 npm install
-npm start
+DATABASE_URL=postgresql://cdq:cdq@localhost:5432/cdq npm start
 ```
 
 ### Datos de prueba
@@ -65,7 +67,7 @@ centrodelquesillo/
 ├── src/
 │   ├── domain/            # Entidades, value objects, servicios y puertos (sin deps externas)
 │   ├── application/       # Casos de uso (orquestan dominio + puertos)
-│   ├── infrastructure/    # Adaptadores: SQLite, auth, web (Express)
+│   ├── infrastructure/    # Adaptadores: PostgreSQL, auth, web (Express)
 │   ├── config/            # Configuracion desde variables de entorno
 │   ├── app.js             # Raiz de composicion (inversion de dependencias)
 │   └── index.js           # Punto de entrada
@@ -81,7 +83,7 @@ centrodelquesillo/
 
 - Autenticacion por token de sesion simple (sin refresh tokens ni bloqueo de intentos).
 - Sin HTTPS (se resuelve con un proxy inverso / la plataforma de despliegue).
-- SQLite es adecuado para un solo negocio; a escala multi-sucursal se migraria a PostgreSQL.
+- PostgreSQL es cliente-servidor: exige un motor corriendo (aqui, un contenedor) incluso para un unico punto de venta.
 - La recomendacion es una SMA; se podria evolucionar a un modelo de series temporales.
 
 ## Licencia

@@ -1,17 +1,18 @@
 export function usersController({ listUsers, createUser }) {
   return {
-    list(_req, res, next) {
+    async list(_req, res, next) {
       try {
-        res.json(listUsers.execute());
+        const result = await listUsers.execute();
+        res.json(result);
       } catch (err) {
         next(err);
       }
     },
 
-    create(req, res, next) {
+    async create(req, res, next) {
       try {
         const { name, username, password, role } = req.body ?? {};
-        const result = createUser.execute({
+        const result = await createUser.execute({
           name,
           username,
           password,

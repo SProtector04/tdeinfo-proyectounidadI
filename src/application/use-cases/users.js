@@ -6,7 +6,7 @@ export class ListUsers {
     this.authRepository = authRepository;
   }
 
-  execute() {
+  async execute() {
     return this.authRepository.listUsers();
   }
 }
@@ -19,7 +19,7 @@ export class CreateUser {
     this.transaction = transaction;
   }
 
-  execute({ name, username, password, role, actorUserId }) {
+  async execute({ name, username, password, role, actorUserId }) {
     if (!password || String(password).length < 6) {
       throw new ValidationError('La contrasena debe tener al menos 6 caracteres');
     }
@@ -27,16 +27,16 @@ export class CreateUser {
     const passwordHash = this.passwordService.hash(password);
 
     let id;
-    this.transaction(() => {
-      const existing = this.authRepository.findUserByUsername(user.username);
+    await this.transaction(async () => {
+      const existing = await this.authRepository.findUserByUsername(user.username);
       if (existing) throw new ConflictError(`El usuario "${user.username}" ya existe`);
-      id = this.authRepository.createUser({
+      id = await this.authRepository.createUser({
         name: user.name,
         username: user.username,
         passwordHash,
         role: user.role,
       });
-      this.inventoryRepository.addAudit({
+      await this.inventoryRepository.addAudit({
         userId: actorUserId,
         action: 'CREATE',
         entity: 'user',

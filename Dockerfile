@@ -1,9 +1,6 @@
 # Imagen oficial de Node desde Docker Hub
 FROM node:22-alpine
 
-# Dependencias de compilacion para modulos nativos (better-sqlite3)
-RUN apk add --no-cache python3 make g++
-
 WORKDIR /app
 
 # Instalar dependencias primero para aprovechar la cache de capas

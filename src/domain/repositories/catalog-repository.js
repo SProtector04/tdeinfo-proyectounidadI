@@ -1,7 +1,7 @@
 /**
  * Puerto `CatalogRepository`. Abstrae el acceso al catalogo (productos,
  * recetas e insumos). La capa de aplicacion depende SOLO de este contrato;
- * la implementacion SQLite vive en infraestructura.
+ * la implementacion PostgreSQL vive en infraestructura.
  */
 export class CatalogRepository {
   listProducts() {

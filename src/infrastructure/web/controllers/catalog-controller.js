@@ -21,36 +21,38 @@ export function catalogController({ listProducts, createProduct, listIngredients
   });
 
   return {
-    listProducts(_req, res, next) {
+    async listProducts(_req, res, next) {
       try {
-        res.json(listProducts.execute().map(toProduct));
+        const products = await listProducts.execute();
+        res.json(products.map(toProduct));
       } catch (err) {
         next(err);
       }
     },
 
-    createProduct(req, res, next) {
+    async createProduct(req, res, next) {
       try {
         const { name, category, priceCents, recipe } = req.body ?? {};
-        const result = createProduct.execute({ name, category, priceCents, recipe, userId: req.user.id });
+        const result = await createProduct.execute({ name, category, priceCents, recipe, userId: req.user.id });
         res.status(201).json(result);
       } catch (err) {
         next(err);
       }
     },
 
-    listIngredients(_req, res, next) {
+    async listIngredients(_req, res, next) {
       try {
-        res.json(listIngredients.execute().map(toIngredient));
+        const ingredients = await listIngredients.execute();
+        res.json(ingredients.map(toIngredient));
       } catch (err) {
         next(err);
       }
     },
 
-    createIngredient(req, res, next) {
+    async createIngredient(req, res, next) {
       try {
         const { name, unit, stock, minStock, costCents } = req.body ?? {};
-        const result = createIngredient.execute({ name, unit, stock, minStock, costCents, userId: req.user.id });
+        const result = await createIngredient.execute({ name, unit, stock, minStock, costCents, userId: req.user.id });
         res.status(201).json(result);
       } catch (err) {
         next(err);

@@ -6,7 +6,6 @@ import { ROLES } from '../../domain/entities/user.js';
  *
  * El sembrado es idempotente: solo inserta cuando la tabla esta vacia.
  */
-
 const INGREDIENTS = [
   { name: 'Queso fresco', unit: 'kg', stock: 10, minStock: 3, costCents: 9000 },
   { name: 'Tortilla', unit: 'unidad', stock: 200, minStock: 60, costCents: 300 },
@@ -27,57 +26,48 @@ const PRODUCTS = [
   { name: 'Fresco natural', category: 'Bebida', priceCents: 2500, recipe: {} },
 ];
 
-export function seedDatabase(db, { passwordService, config }) {
-  seedUsers(db, { passwordService, config });
-  seedCatalog(db);
+export async function seedDatabase(db, { passwordService, config }) {
+  await seedUsers(db, { passwordService, config });
+  await seedCatalog(db);
 }
 
-function seedUsers(db, { passwordService, config }) {
-  const count = db.prepare('SELECT COUNT(*) AS n FROM users').get().n;
-  if (count > 0) return;
+async function seedUsers(db, { passwordService, config }) {
+  const rows = await db.query('SELECT COUNT(*)::int AS n FROM users');
+  if (rows[0].n > 0) return;
 
-  const insert = db.prepare(
-    'INSERT INTO users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
+  await db.query(
+    'INSERT INTO users (name, username, password_hash, role) VALUES ($1, $2, $3, $4)',
+    [config.admin.name, config.admin.username, passwordService.hash(config.admin.password), ROLES.ADMIN],
   );
-
-  insert.run(
-    config.admin.name,
-    config.admin.username,
-    passwordService.hash(config.admin.password),
-    ROLES.ADMIN,
-  );
-  insert.run(
-    config.cajero.name,
-    config.cajero.username,
-    passwordService.hash(config.cajero.password),
-    ROLES.CAJERO,
+  await db.query(
+    'INSERT INTO users (name, username, password_hash, role) VALUES ($1, $2, $3, $4)',
+    [config.cajero.name, config.cajero.username, passwordService.hash(config.cajero.password), ROLES.CAJERO],
   );
 }
 
-function seedCatalog(db) {
-  const count = db.prepare('SELECT COUNT(*) AS n FROM ingredients').get().n;
-  if (count > 0) return;
-
-  const insertIngredient = db.prepare(
-    'INSERT INTO ingredients (name, unit, stock, min_stock, cost_cents) VALUES (?, ?, ?, ?, ?)',
-  );
-  const insertProduct = db.prepare(
-    'INSERT INTO products (name, category, price_cents) VALUES (?, ?, ?)',
-  );
-  const insertRecipe = db.prepare(
-    'INSERT INTO product_ingredients (product_id, ingredient_id, quantity) VALUES (?, ?, ?)',
-  );
+async function seedCatalog(db) {
+  const rows = await db.query('SELECT COUNT(*)::int AS n FROM ingredients');
+  if (rows[0].n > 0) return;
 
   const ingredientIds = {};
   for (const ing of INGREDIENTS) {
-    const info = insertIngredient.run(ing.name, ing.unit, ing.stock, ing.minStock, ing.costCents);
-    ingredientIds[ing.name] = info.lastInsertRowid;
+    const created = await db.query(
+      'INSERT INTO ingredients (name, unit, stock, min_stock, cost_cents) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+      [ing.name, ing.unit, ing.stock, ing.minStock, ing.costCents],
+    );
+    ingredientIds[ing.name] = created[0].id;
   }
 
   for (const prod of PRODUCTS) {
-    const info = insertProduct.run(prod.name, prod.category, prod.priceCents);
+    const created = await db.query(
+      'INSERT INTO products (name, category, price_cents) VALUES ($1, $2, $3) RETURNING id',
+      [prod.name, prod.category, prod.priceCents],
+    );
     for (const [ingName, quantity] of Object.entries(prod.recipe)) {
-      insertRecipe.run(info.lastInsertRowid, ingredientIds[ingName], quantity);
+      await db.query(
+        'INSERT INTO product_ingredients (product_id, ingredient_id, quantity) VALUES ($1, $2, $3)',
+        [created[0].id, ingredientIds[ingName], quantity],
+      );
     }
   }
 }

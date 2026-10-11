@@ -12,8 +12,8 @@ export class Login {
     this.sessionTtlMs = sessionTtlMs;
   }
 
-  execute({ username, password }) {
-    const user = this.authRepository.findUserByUsername(username);
+  async execute({ username, password }) {
+    const user = await this.authRepository.findUserByUsername(username);
     if (!user || !user.active) {
       throw new UnauthorizedError('Credenciales invalidas');
     }
@@ -25,8 +25,8 @@ export class Login {
     const tokenHash = this.tokenService.hash(token);
     const expiresAt = new Date(Date.now() + this.sessionTtlMs).toISOString();
 
-    this.authRepository.createSession(tokenHash, user.id, expiresAt);
-    this.auditRepository.addAudit({
+    await this.authRepository.createSession(tokenHash, user.id, expiresAt);
+    await this.auditRepository.addAudit({
       userId: user.id,
       action: 'LOGIN',
       entity: 'session',
@@ -51,12 +51,12 @@ export class Logout {
     this.auditRepository = auditRepository;
   }
 
-  execute({ token, userId }) {
+  async execute({ token, userId }) {
     if (token) {
-      this.authRepository.deleteSession(this.tokenService.hash(token));
+      await this.authRepository.deleteSession(this.tokenService.hash(token));
     }
     if (userId) {
-      this.auditRepository.addAudit({
+      await this.auditRepository.addAudit({
         userId,
         action: 'LOGOUT',
         entity: 'session',

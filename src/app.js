@@ -2,10 +2,10 @@ import { createConnection, makeTransaction } from './infrastructure/persistence/
 import { ensureSchema } from './infrastructure/persistence/schema.js';
 import { seedDatabase } from './infrastructure/persistence/seed.js';
 
-import { SqliteCatalogRepository } from './infrastructure/persistence/sqlite-catalog-repository.js';
-import { SqliteSalesRepository } from './infrastructure/persistence/sqlite-sales-repository.js';
-import { SqliteInventoryRepository } from './infrastructure/persistence/sqlite-inventory-repository.js';
-import { SqliteAuthRepository } from './infrastructure/persistence/sqlite-auth-repository.js';
+import { PostgresCatalogRepository } from './infrastructure/persistence/postgres-catalog-repository.js';
+import { PostgresSalesRepository } from './infrastructure/persistence/postgres-sales-repository.js';
+import { PostgresInventoryRepository } from './infrastructure/persistence/postgres-inventory-repository.js';
+import { PostgresAuthRepository } from './infrastructure/persistence/postgres-auth-repository.js';
 
 import { ScryptPasswordService } from './infrastructure/auth/scrypt-password-service.js';
 import { CryptoTokenService } from './infrastructure/auth/crypto-token-service.js';
@@ -34,18 +34,18 @@ import { usersController } from './infrastructure/web/controllers/users-controll
  * conectan las dependencias concretas. Las capas internas (dominio y
  * aplicacion) solo conocen interfaces (puertos), nunca implementaciones.
  */
-export function buildApp(config) {
-  const db = createConnection(config.databasePath);
-  ensureSchema(db);
+export async function buildApp(config) {
+  const db = createConnection(config.databaseUrl);
+  await ensureSchema(db);
 
   const passwordService = new ScryptPasswordService();
   const tokenService = new CryptoTokenService();
-  seedDatabase(db, { passwordService, config });
+  await seedDatabase(db, { passwordService, config });
 
-  const catalogRepository = new SqliteCatalogRepository(db);
-  const salesRepository = new SqliteSalesRepository(db);
-  const inventoryRepository = new SqliteInventoryRepository(db);
-  const authRepository = new SqliteAuthRepository(db);
+  const catalogRepository = new PostgresCatalogRepository(db);
+  const salesRepository = new PostgresSalesRepository(db);
+  const inventoryRepository = new PostgresInventoryRepository(db);
+  const authRepository = new PostgresAuthRepository(db);
 
   const stockService = new StockService();
   const recommendationService = new RecommendationService();
