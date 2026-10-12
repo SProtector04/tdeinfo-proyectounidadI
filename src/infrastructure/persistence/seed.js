@@ -21,9 +21,9 @@ const PRODUCTS = [
   { name: 'Quesillo sencillo', category: 'Quesillo', priceCents: 6000, recipe: { 'Queso fresco': 0.12, 'Tortilla': 1, 'Crema': 0.02, 'Cebolla encurtida': 0.03, 'Vinagre': 0.01 } },
   { name: 'Quesillo con crema', category: 'Quesillo', priceCents: 7500, recipe: { 'Queso fresco': 0.15, 'Tortilla': 1, 'Crema': 0.04, 'Cebolla encurtida': 0.03, 'Vinagre': 0.01 } },
   { name: 'Quesillo doble', category: 'Quesillo', priceCents: 9000, recipe: { 'Queso fresco': 0.22, 'Tortilla': 1, 'Crema': 0.04, 'Cebolla encurtida': 0.03, 'Vinagre': 0.01 } },
-  { name: 'Tiste', category: 'Bebida', priceCents: 3000, recipe: { 'Tiste (polvo)': 0.05, 'Cacao': 0.01 } },
-  { name: 'Cacao', category: 'Bebida', priceCents: 3500, recipe: { 'Cacao': 0.05 } },
-  { name: 'Fresco natural', category: 'Bebida', priceCents: 2500, recipe: {} },
+  { name: 'Tiste', category: 'Bebidas', priceCents: 3000, recipe: { 'Tiste (polvo)': 0.05, 'Cacao': 0.01 } },
+  { name: 'Cacao', category: 'Bebidas', priceCents: 3500, recipe: { 'Cacao': 0.05 } },
+  { name: 'Fresco natural', category: 'Bebidas', priceCents: 2500, recipe: {} },
 ];
 
 export async function seedDatabase(db, { passwordService, config }) {

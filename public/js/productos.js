@@ -33,15 +33,19 @@ function shortage(product) {
 }
 
 /** Tarjeta de producto: nombre, categoria, precio destacado y receta. */
-// Imagen ilustrativa por categoria (SVG local, licencia propia). Fallback
-// generico cuando la categoria no tiene ilustracion dedicada.
-const CATEGORY_IMAGE = {
-  Quesillo: '/img/quesillo.svg',
-  Bebida: '/img/bebida.svg',
+// Imagen por producto. El mapa usa el nombre exacto del producto sembrado;
+// cualquier producto nuevo (o sin foto propia) cae al SVG generico.
+const PRODUCT_IMAGE = {
+  'Quesillo sencillo': '/img/quesillo-sencillo.png',
+  'Quesillo con crema': '/img/quesillo-crema.png',
+  'Quesillo doble': '/img/quesillo-doble.png',
+  Tiste: '/img/tiste.png',
+  Cacao: '/img/cacao.png',
+  'Fresco natural': '/img/refrescos-naturales.png',
 };
 
-function productImage(category) {
-  return CATEGORY_IMAGE[category] ?? '/img/generico.svg';
+function productImage(name) {
+  return PRODUCT_IMAGE[name] ?? '/img/generico.svg';
 }
 
 function productCard(p) {
@@ -51,7 +55,7 @@ function productCard(p) {
     : 'No consume inventario';
   return `
     <article class="product-card${short ? ' product-card--short' : ''}">
-      <img class="product-card__img" src="${productImage(p.category)}" alt="" loading="lazy" />
+      <img class="product-card__img" src="${productImage(p.name)}" alt="" loading="lazy" />
       <div class="product-card__head">
         <span class="product-card__cat">${escapeHtml(p.category)}</span>
         <strong class="product-card__price">${escapeHtml(p.formattedPrice)}</strong>
