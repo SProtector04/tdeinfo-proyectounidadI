@@ -256,7 +256,13 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   color: var(--muted);
 }
 .product-card__price { font-size: 1.15rem; color: var(--primary-dark); white-space: nowrap; }
-.product-card__name { margin: 0; font-size: 1rem; }
+.product-card__name {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .product-card__recipe { margin: 0; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
 .product-card__alert {
   display: flex;
