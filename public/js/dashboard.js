@@ -64,117 +64,128 @@ function renderStats(data) {
   `;
 }
 
-/** Redondea el techo del eje a un valor "redondo" legible. */
-function niceCeil(value) {
-  if (value <= 0) return 1;
-  const pow = Math.pow(10, Math.floor(Math.log10(value)));
-  const n = value / pow;
-  const step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((s) => n <= s) ?? 10;
-  return Math.round(step * pow);
-}
+const CHART_COLOR = { revenue: '#d97706', cost: '#cdbfa6', gain: '#166534', unknown: '#b9b0a0' };
+let revenueChart = null;
+let topChart = null;
 
 function renderSeries(data) {
   revenueTitle.textContent = `Ingresos (${PERIOD_LABEL[currentDays]})`;
+  if (revenueChart) {
+    revenueChart.destroy();
+    revenueChart = null;
+  }
+
   const series = data.revenueSeries;
   if (series.length === 0) {
     barsEl.innerHTML = emptyState('Sin ventas registradas.', 'cart');
     return;
   }
 
-  // Escala visible: el techo del eje se redondea para que las etiquetas sean legibles.
+  // Escala por el maximo local del grafico: la barra mas alta toca el techo.
   const max = Math.max(1, ...series.map((r) => r.totalCents));
-  const top = niceCeil(max);
-  const ticks = [top, Math.round(top / 2), 0];
-  const axis = ticks.map((v) => `<span>${escapeHtml(formatMoney(v))}</span>`).join('');
-  const grid = ticks.map(() => '<span></span>').join('');
-
-  const bars = series
-    .map((r) => {
-      const pct = Math.max(1.5, (r.totalCents / top) * 100);
-      const tip = `${escapeHtml(r.date.slice(5))} · ${escapeHtml(formatMoney(r.totalCents))}`;
-      return `<div class="bar" tabindex="0" style="height:${pct.toFixed(2)}%"><span class="bar__tip">${tip}</span></div>`;
-    })
-    .join('');
-  const labels =
-    series.length <= 16
-      ? `<div class="chart__labels">${series.map((r) => `<span>${escapeHtml(r.date.slice(5))}</span>`).join('')}</div>`
-      : '';
-
-  barsEl.innerHTML = `
-    <div class="chart">
-      <div class="chart__axis">${axis}</div>
-      <div class="chart__main">
-        <div class="chart__plot">
-          <div class="chart__grid">${grid}</div>
-          <div class="chart__bars">${bars}</div>
-        </div>
-        ${labels}
-      </div>
-    </div>`;
-}
-
-function topTooltip(p) {
-  const lines = [
-    `<strong>${escapeHtml(p.name)}</strong>`,
-    `<span>${p.quantity} vendidos</span>`,
-    `<span>Venta bruta: ${escapeHtml(formatMoney(p.revenueCents))}</span>`,
-  ];
-  if (p.hasCost) {
-    lines.push(`<span>Costo de ventas: ${escapeHtml(formatMoney(p.costCents))}</span>`);
-    lines.push(`<span>Ganancia bruta: ${escapeHtml(formatMoney(p.marginCents))}</span>`);
-    lines.push(`<span>Margen: ${p.marginPercent}%</span>`);
-  } else {
-    lines.push('<span>Sin costo registrado</span>');
-  }
-  return `<div class="stack__tip">${lines.join('')}</div>`;
+  barsEl.innerHTML = '<div class="chart-canvas"><canvas></canvas></div>';
+  revenueChart = new Chart(barsEl.querySelector('canvas'), {
+    type: 'bar',
+    data: {
+      labels: series.map((r) => r.date.slice(5)),
+      datasets: [
+        {
+          label: 'Ingresos',
+          data: series.map((r) => r.totalCents),
+          backgroundColor: CHART_COLOR.revenue,
+          borderRadius: 4,
+          maxBarThickness: 48,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => formatMoney(ctx.parsed.y) } },
+      },
+      scales: {
+        y: { beginAtZero: true, max, ticks: { callback: (v) => formatMoney(v) }, grid: { color: '#efe7db' } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
 }
 
 function renderTop(data) {
+  if (topChart) {
+    topChart.destroy();
+    topChart = null;
+  }
   const items = data.topProducts;
   if (!items.length) {
     topEl.innerHTML = emptyState('Sin datos en este periodo.', 'menu');
     return;
   }
 
-  // Escala compartida: la barra mas larga es el mayor ingreso del top.
-  // La longitud de cada barra = venta bruta; dentro se reparte costo +
-  // ganancia bruta (que suman la venta bruta, sin duplicarla).
+  // Barra = venta bruta (revenueCents) repartida en costo + ganancia. Los
+  // productos sin costo registrado van a un tercer segmento neutro, sin
+  // inventar ganancia. maxRev define la escala local (barra mas larga = 100%).
+  const cost = items.map((p) => (p.hasCost ? p.costCents : 0));
+  const gain = items.map((p) => (p.hasCost ? p.marginCents : 0));
+  const unknown = items.map((p) => (p.hasCost ? 0 : p.revenueCents));
+  const anyUnknown = unknown.some((v) => v > 0);
   const maxRev = Math.max(1, ...items.map((p) => p.revenueCents));
-  const legend = `
-    <div class="stack-legend">
-      <span class="stack-legend__item"><i class="swatch swatch--cost"></i>Costo de ventas</span>
-      <span class="stack-legend__item"><i class="swatch swatch--gain"></i>Ganancia bruta</span>
-    </div>`;
 
-  const rows = items
-    .map((p) => {
-      const widthPct = (p.revenueCents / maxRev) * 100;
-      let segments;
-      if (p.hasCost && p.revenueCents > 0) {
-        // Porcentajes del total de la barra; no se recalcula el margen, viene
-        // del backend. Ganancia 0 deja el segmento en 0 (sin minimo falso).
-        const costPct = (p.costCents / p.revenueCents) * 100;
-        const gainPct = (p.marginCents / p.revenueCents) * 100;
-        segments =
-          `<span class="stack__seg stack__seg--cost" style="width:${costPct.toFixed(2)}%"></span>` +
-          `<span class="stack__seg stack__seg--gain" style="width:${gainPct.toFixed(2)}%"></span>`;
-      } else if (p.hasCost) {
-        segments = '<span class="stack__seg stack__seg--cost" style="width:100%"></span>';
-      } else {
-        segments = '<span class="stack__seg stack__seg--unknown" style="width:100%"></span>';
-      }
-      return `
-        <div class="stack-row">
-          <span class="stack-row__label">${escapeHtml(p.name)}</span>
-          <div class="stack-row__track" tabindex="0">
-            <div class="stack" style="width:${widthPct.toFixed(2)}%">${segments}</div>
-            ${topTooltip(p)}
-          </div>
-        </div>`;
-    })
-    .join('');
-
-  topEl.innerHTML = `${legend}<div class="stack-chart">${rows}</div>`;
+  topEl.innerHTML = '<div class="chart-canvas chart-canvas--top"><canvas></canvas></div>';
+  topChart = new Chart(topEl.querySelector('canvas'), {
+    type: 'bar',
+    data: {
+      labels: items.map((p) => p.name),
+      datasets: [
+        { label: 'Costo de ventas', data: cost, backgroundColor: CHART_COLOR.cost },
+        { label: 'Ganancia bruta', data: gain, backgroundColor: CHART_COLOR.gain },
+        { label: 'Sin costo registrado', data: unknown, backgroundColor: CHART_COLOR.unknown },
+      ],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'start',
+          labels: { boxWidth: 12, boxHeight: 12, filter: (item) => item.text !== 'Sin costo registrado' || anyUnknown },
+        },
+        tooltip: {
+          callbacks: {
+            title: (list) => list[0].label,
+            label: (ctx) => {
+              const v = ctx.parsed.x;
+              if (!v) return null; // omite segmentos vacios
+              if (ctx.dataset.label === 'Costo de ventas') return `Costo de ventas: ${formatMoney(v)}`;
+              if (ctx.dataset.label === 'Ganancia bruta') return `Ganancia bruta: ${formatMoney(v)}`;
+              return 'Sin costo registrado';
+            },
+            footer: (list) => {
+              const p = items[list[0].dataIndex];
+              if (!p) return '';
+              const lines = [`${p.quantity} vendidos`, `Venta bruta: ${formatMoney(p.revenueCents)}`];
+              if (p.hasCost) lines.push(`Margen: ${p.marginPercent}%`);
+              return lines;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          stacked: true,
+          beginAtZero: true,
+          max: maxRev,
+          ticks: { callback: (v) => formatMoney(v) },
+          grid: { color: '#efe7db' },
+        },
+        y: { stacked: true, grid: { display: false } },
+      },
+    },
+  });
 }
 
 function renderInventory(data) {

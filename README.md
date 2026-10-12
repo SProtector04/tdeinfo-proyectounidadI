@@ -179,13 +179,16 @@ retroalimentacion.
 
 Codigo propio bajo licencia **MIT** (ver `LICENSE`).
 
-Depencias de terceros (licencias de sus autores originales; no se redistribuye
-codigo fuente de estas):
+Dependencias de terceros (licencias de sus autores originales):
 
 | Paquete | Uso | Licencia |
 | --- | --- | --- |
 | [`express`](https://www.npmjs.com/package/express) | Framework web (rutas y middleware) | MIT |
 | [`pg`](https://www.npmjs.com/package/pg) | Cliente de PostgreSQL | MIT |
+| [`chart.js`](https://www.chartjs.org) | Graficos del tablero | MIT |
 
-Las imagenes base (`node:22-alpine`, `postgres:16-alpine`) se obtienen de
-Docker Hub y se usan tal cual; sus licencias aplican por separado.
+Chart.js se incluye **vendorizado** como archivo local
+(`public/js/vendor/chart.umd.js`, v4.4.4) para funcionar sin internet y cumplir
+la CSP estricta (`script-src 'self'`, sin CDN). Las imagenes base
+(`node:22-alpine`, `postgres:16-alpine`) se obtienen de Docker Hub y se usan
+tal cual; sus licencias aplican por separado.

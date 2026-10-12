@@ -10,7 +10,6 @@
   --warn: #b45309;
   --border: #e7dfd3;
   --radius: 10px;
-  --stack-cost: #cdbfa6;
 }
 
 * { box-sizing: border-box; }
@@ -137,76 +136,9 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
 
 .auth-wrap { max-width: 360px; margin: 80px auto; }
 
-/* Grafico de ingresos: escala visible (eje Y) + tooltip con valor exacto */
-.card--chart { overflow: visible; }
-.chart { display: flex; gap: 8px; }
-.chart__axis {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 150px;
-  text-align: right;
-  font-size: 0.68rem;
-  color: var(--muted);
-}
-.chart__main { flex: 1; min-width: 0; }
-.chart__plot { position: relative; height: 150px; }
-.chart__grid {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  pointer-events: none;
-}
-.chart__grid span { border-top: 1px dashed var(--border); }
-.chart__bars {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-}
-.chart__bars .bar {
-  position: relative;
-  flex: 1;
-  background: var(--primary);
-  border-radius: 4px 4px 0 0;
-  min-height: 3px;
-}
-.chart__bars .bar:hover,
-.chart__bars .bar:focus { background: var(--primary-dark); }
-.chart__bars .bar:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.bar__tip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--text);
-  color: #fff;
-  font-size: 0.7rem;
-  white-space: nowrap;
-  padding: 3px 7px;
-  border-radius: 6px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.12s ease;
-  pointer-events: none;
-  z-index: 5;
-}
-.bar:hover .bar__tip,
-.bar:focus .bar__tip { opacity: 1; visibility: visible; }
-.chart__labels { display: flex; gap: 6px; margin-top: 8px; }
-.chart__labels span {
-  flex: 1;
-  text-align: center;
-  font-size: 0.68rem;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* Graficos (Chart.js): contenedor con altura fija; el canvas lo dibuja la libreria */
+.chart-canvas { position: relative; height: 190px; }
+.chart-canvas--top { height: 210px; }
 
 /* Toasts de confirmacion / error */
 #toast-root {
@@ -383,12 +315,8 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--border);
   border-radius: var(--radius);
 }
-.alert-row--critical { border-left-color: var(--danger); }
-.alert-row--warning { border-left-color: var(--warn); }
-.alert-row--resolved { border-left-color: var(--accent); opacity: 0.7; }
 
 .alert-row__icon { flex: none; color: var(--muted); }
 .alert-row__icon .icon { width: 20px; height: 20px; display: block; }
@@ -545,74 +473,4 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .view-head h2 { margin: 0; }
 
-/* Tablero: productos mas vendidos como barras apiladas (venta bruta =
-   costo + ganancia bruta). La longitud total es la venta bruta; el reparto
-   interno muestra el costo (neutro) y la ganancia (verde). */
-.stack-chart { display: flex; flex-direction: column; gap: 9px; }
-.stack-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 12px;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-.stack-legend__item { display: inline-flex; align-items: center; gap: 6px; }
-.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-.swatch--cost { background: var(--stack-cost); }
-.swatch--gain { background: var(--accent); }
-
-.stack-row {
-  display: grid;
-  grid-template-columns: minmax(96px, 150px) 1fr;
-  align-items: center;
-  gap: 10px;
-}
-.stack-row__label {
-  font-size: 0.85rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.stack-row__track {
-  position: relative;
-  height: 22px;
-  background: var(--bg);
-  border-radius: 4px;
-}
-.stack-row__track:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.stack {
-  display: flex;
-  height: 100%;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.stack__seg { height: 100%; }
-.stack__seg--cost { background: var(--stack-cost); }
-.stack__seg--gain { background: var(--accent); }
-.stack__seg--unknown {
-  background: repeating-linear-gradient(45deg, #e2d8c4, #e2d8c4 6px, #f1e9da 6px, #f1e9da 12px);
-}
-
-.stack__tip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: var(--text);
-  color: #fff;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  padding: 6px 9px;
-  border-radius: 6px;
-  max-width: 260px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.12s ease;
-  pointer-events: none;
-  z-index: 5;
-}
-.stack-row__track:hover .stack__tip,
-.stack-row__track:focus .stack__tip { opacity: 1; visibility: visible; }
+/* Las series de productos mas vendidos las dibuja Chart.js (ver dashboard.js) */
