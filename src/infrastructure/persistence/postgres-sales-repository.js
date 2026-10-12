@@ -23,12 +23,12 @@ export class PostgresSalesRepository extends SalesRepository {
     }
   }
 
-  async list({ limit = 50 } = {}) {
+  async list({ limit = 50, offset = 0 } = {}) {
     const sales = await this.db.query(
       `SELECT s.*, u.name AS user_name
        FROM sales s JOIN users u ON u.id = s.user_id
-       ORDER BY s.id DESC LIMIT $1`,
-      [limit],
+       ORDER BY s.id DESC LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
 
     const ids = sales.map((s) => s.id);

@@ -14,14 +14,14 @@ export class PostgresInventoryRepository extends InventoryRepository {
     return rows[0].id;
   }
 
-  async listMovements({ limit = 100 } = {}) {
+  async listMovements({ limit = 100, offset = 0 } = {}) {
     const rows = await this.db.query(
       `SELECT m.*, i.name AS ingredient_name, i.unit, u.name AS user_name
        FROM inventory_movements m
        JOIN ingredients i ON i.id = m.ingredient_id
        JOIN users u ON u.id = m.user_id
-       ORDER BY m.id DESC LIMIT $1`,
-      [limit],
+       ORDER BY m.id DESC LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     return rows.map((r) => ({
       id: r.id,
@@ -90,12 +90,12 @@ export class PostgresInventoryRepository extends InventoryRepository {
     );
   }
 
-  async listAudit({ limit = 100 } = {}) {
+  async listAudit({ limit = 100, offset = 0 } = {}) {
     const rows = await this.db.query(
       `SELECT a.*, u.name AS user_name
        FROM audit_logs a JOIN users u ON u.id = a.user_id
-       ORDER BY a.id DESC LIMIT $1`,
-      [limit],
+       ORDER BY a.id DESC LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     return rows.map((r) => ({
       id: r.id,

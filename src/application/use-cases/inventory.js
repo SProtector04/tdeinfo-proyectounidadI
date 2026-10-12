@@ -77,8 +77,8 @@ export class ListMovements {
     this.inventoryRepository = inventoryRepository;
   }
 
-  async execute({ limit = 100 } = {}) {
-    return this.inventoryRepository.listMovements({ limit });
+  async execute({ limit = 100, offset = 0 } = {}) {
+    return this.inventoryRepository.listMovements({ limit, offset });
   }
 }
 
@@ -118,7 +118,7 @@ export class ListAudit {
     this.inventoryRepository = inventoryRepository;
   }
 
-  async execute({ limit = 100 } = {}) {
-    return this.inventoryRepository.listAudit({ limit });
+  async execute({ limit = 100, offset = 0 } = {}) {
+    return this.inventoryRepository.listAudit({ limit, offset });
   }
 }

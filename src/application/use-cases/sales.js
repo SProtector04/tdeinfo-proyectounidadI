@@ -155,7 +155,7 @@ export class ListSales {
     this.salesRepository = salesRepository;
   }
 
-  async execute({ limit = 50 } = {}) {
-    return this.salesRepository.list({ limit });
+  async execute({ limit = 50, offset = 0 } = {}) {
+    return this.salesRepository.list({ limit, offset });
   }
 }

@@ -1,3 +1,5 @@
+import { parsePagination } from '../validation.js';
+
 export function inventoryController({
   addStock,
   adjustStock,
@@ -29,7 +31,8 @@ export function inventoryController({
 
     async listMovements(req, res, next) {
       try {
-        const result = await listMovements.execute({ limit: Number(req.query.limit ?? 100) });
+        const { limit, offset } = parsePagination(req.query, { defaultLimit: 50 });
+        const result = await listMovements.execute({ limit, offset });
         res.json(result);
       } catch (err) {
         next(err);
@@ -56,7 +59,8 @@ export function inventoryController({
 
     async listAudit(req, res, next) {
       try {
-        const result = await listAudit.execute({ limit: Number(req.query.limit ?? 100) });
+        const { limit, offset } = parsePagination(req.query, { defaultLimit: 100 });
+        const result = await listAudit.execute({ limit, offset });
         res.json(result);
       } catch (err) {
         next(err);
