@@ -3,7 +3,6 @@ import { renderNav, getCurrentUser } from './common.js';
 import { toast, formatDate, escapeHtml, placeholder, emptyState, icon } from './ui.js';
 
 const SEVERITY_ICON = { CRITICAL: 'critical', WARNING: 'warning' };
-const STATUS_ICON = { OPEN: 'alert', RESOLVED: 'checkCircle' };
 
 const user = await getCurrentUser();
 await renderNav('/alertas.html');
@@ -21,36 +20,57 @@ function renderSummary(alerts) {
   const counts = { CRITICAL: 0, WARNING: 0 };
   for (const a of alerts) if (a.severity in counts) counts[a.severity] += 1;
   summaryEl.innerHTML = `
-    <div class="card stat">
+    <div class="card stat stat--critical">
       <div class="value">${counts.CRITICAL}</div>
-      <div class="label">Críticas</div>
+      <div class="label">Críticas abiertas</div>
     </div>
-    <div class="card stat">
+    <div class="card stat stat--warning">
       <div class="value">${counts.WARNING}</div>
-      <div class="label">Avisos</div>
+      <div class="label">Avisos abiertos</div>
     </div>
-    <div class="card stat">
+    <div class="card stat stat--total">
       <div class="value">${alerts.length}</div>
-      <div class="label">Total listadas</div>
+      <div class="label">Total abiertas</div>
     </div>
   `;
 }
 
+/**
+ * Separa el mensaje de dominio (`"Insumo": detalle`) en titulo y detalle para
+ * que la alerta sea escaneable. Si el formato cambia, cae al mensaje completo.
+ */
+function parseMessage(message) {
+  const match = /^"([^"]+)":\s*(.*)$/.exec(message);
+  return match ? { title: match[1], detail: match[2] } : { title: null, detail: message };
+}
+
+function alertRow(a) {
+  const { title, detail } = parseMessage(a.message);
+  const isResolved = a.status === 'RESOLVED';
+  const mod = isResolved ? 'resolved' : a.severity === 'CRITICAL' ? 'critical' : 'warning';
+  const iconName = isResolved ? 'checkCircle' : SEVERITY_ICON[a.severity] ?? 'warning';
+  const badge = isResolved
+    ? '<span class="badge resolved">Resuelta</span>'
+    : `<span class="badge ${a.severity.toLowerCase()}">${a.severity}</span>`;
+  const resolvedMeta = isResolved && a.resolvedAt ? ` · resuelta ${escapeHtml(formatDate(a.resolvedAt))}` : '';
+  return `
+    <div class="alert-row alert-row--${mod}">
+      <span class="alert-row__icon">${icon(iconName)}</span>
+      <div class="alert-row__body">
+        <div class="alert-row__top">
+          ${title ? `<span class="alert-row__title">${escapeHtml(title)}</span>` : ''}
+          ${badge}
+        </div>
+        <p class="alert-row__detail">${escapeHtml(detail)}</p>
+        <span class="alert-row__meta">${escapeHtml(formatDate(a.createdAt))}${resolvedMeta}</span>
+      </div>
+      ${isAdmin && !isResolved ? `<button data-id="${a.id}" class="ghost alert-row__action">${icon('check')}<span>Resolver</span></button>` : ''}
+    </div>`;
+}
+
 function renderAlertsList(alerts) {
   alertsEl.innerHTML = alerts.length
-    ? alerts
-        .map(
-          (a) => `<div class="alert-row">
-            <div>
-              <span class="badge icon-badge ${a.severity.toLowerCase()}">${icon(SEVERITY_ICON[a.severity] ?? 'warning')}<span>${a.severity}</span></span>
-              <span class="badge icon-badge ${a.status.toLowerCase()}">${icon(STATUS_ICON[a.status] ?? 'info')}<span>${a.status}</span></span>
-              <span class="muted alert-date">${escapeHtml(formatDate(a.createdAt))}</span>
-              <div class="alert-message">${escapeHtml(a.message)}</div>
-            </div>
-            ${isAdmin && a.status === 'OPEN' ? `<button data-id="${a.id}" class="ghost">${icon('check')}<span>Resolver</span></button>` : ''}
-          </div>`,
-        )
-        .join('')
+    ? alerts.map(alertRow).join('')
     : emptyState('No hay alertas con este filtro.', 'filter');
 
   alertsEl.querySelectorAll('button[data-id]').forEach((btn) =>
