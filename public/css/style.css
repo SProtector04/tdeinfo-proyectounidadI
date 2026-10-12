@@ -43,6 +43,9 @@ header.top .brand {
 header.top nav { display: flex; gap: 4px; flex: 1; }
 
 header.top nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   border-radius: 6px;
   color: var(--text);
@@ -155,6 +158,9 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
   max-width: min(360px, calc(100vw - 32px));
 }
 .toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 14px;
   border-radius: var(--radius);
   font-size: 0.9rem;
@@ -162,6 +168,7 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
   animation: toast-in 0.2s ease-out;
   border: 1px solid transparent;
 }
+.toast .icon { flex: none; }
 .toast.success { background: #dcfce7; color: var(--accent); border-color: #bbf7d0; }
 .toast.error { background: #fee2e2; color: var(--danger); border-color: #fecaca; }
 .toast.info { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }

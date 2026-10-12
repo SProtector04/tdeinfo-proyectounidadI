@@ -1,7 +1,9 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
-import { toast, withSubmitting, formatDate, escapeHtml, placeholder, renderPager, initViewSwitcher } from './ui.js';
+import { toast, withSubmitting, formatDate, escapeHtml, placeholder, renderPager, initViewSwitcher, emptyState, icon } from './ui.js';
 import { renderTable } from './components/table.js';
+
+const SEVERITY_ICON = { CRITICAL: 'critical', WARNING: 'warning' };
 
 const user = await getCurrentUser();
 if (user.role !== 'ADMIN') {
@@ -32,18 +34,18 @@ function renderIngredients() {
         label: 'Estado',
         render: (i) =>
           i.severity
-            ? `<span class="badge ${i.severity.toLowerCase()}">${i.severity}</span>`
-            : '<span class="badge resolved">OK</span>',
+            ? `<span class="badge icon-badge ${i.severity.toLowerCase()}">${icon(SEVERITY_ICON[i.severity] ?? 'warning')}<span>${i.severity}</span></span>`
+            : `<span class="badge icon-badge resolved">${icon('checkCircle')}<span>OK</span></span>`,
       },
       {
         label: 'Acciones',
         render: (i) => `
-          <button type="button" class="ghost" data-entry="${i.id}">Entrada</button>
-          <button type="button" class="ghost" data-adjust="${i.id}">Ajuste</button>`,
+          <button type="button" class="ghost" data-entry="${i.id}">${icon('plus')}<span>Entrada</span></button>
+          <button type="button" class="ghost" data-adjust="${i.id}">${icon('refresh')}<span>Ajuste</span></button>`,
       },
     ],
     rows: sorted,
-    empty: 'Sin insumos.',
+    emptyHtml: emptyState('Sin insumos.', 'box'),
   });
   ingredientsEl.querySelectorAll('button[data-entry]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -85,7 +87,7 @@ function renderMovements(movements) {
       { label: 'Usuario', render: (m) => escapeHtml(m.userName) },
     ],
     rows: movements,
-    empty: 'Sin movimientos.',
+    emptyHtml: emptyState('Sin movimientos.', 'refresh'),
   });
 }
 
@@ -107,6 +109,13 @@ async function loadMovements() {
 // --- Formularios: entrada y ajuste ---
 const addForm = document.getElementById('add-form');
 const adjustForm = document.getElementById('adjust-form');
+
+// Iconos de los botones de los formularios (el HTML no lleva SVG).
+addForm.querySelector('button[type="submit"]').insertAdjacentHTML('afterbegin', icon('plus'));
+adjustForm.querySelector('button[type="submit"]').insertAdjacentHTML('afterbegin', icon('refresh'));
+for (const b of document.querySelectorAll('button[data-goto]')) {
+  b.insertAdjacentHTML('afterbegin', icon('chevronLeft'));
+}
 
 addForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -170,4 +179,5 @@ switcher = initViewSwitcher({
     ajuste: loadIngredients,
     movimientos: loadMovements,
   },
+  viewIcon: { estado: 'box', entrada: 'plus', ajuste: 'refresh', movimientos: 'menu' },
 });

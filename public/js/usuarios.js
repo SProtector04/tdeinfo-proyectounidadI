@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
-import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher } from './ui.js';
+import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher, emptyState, icon } from './ui.js';
 import { renderTable } from './components/table.js';
 
 const user = await getCurrentUser();
@@ -22,17 +22,21 @@ async function renderUsers() {
       { label: 'Usuario', render: (u) => escapeHtml(u.username) },
       {
         label: 'Rol',
-        render: (u) => `<span class="badge ${u.role.toLowerCase()}">${u.role}</span>`,
+        render: (u) => `<span class="badge icon-badge ${u.role.toLowerCase()}">${icon('users')}<span>${u.role}</span></span>`,
       },
       { label: 'Activo', render: (u) => (u.active ? 'Sí' : 'No') },
     ],
     rows: users,
-    empty: 'Sin usuarios.',
+    emptyHtml: emptyState('Sin usuarios.', 'users'),
   });
 }
 
 // --- Vista: Nuevo usuario ---
 const form = document.getElementById('user-form');
+// Iconos de los botones del formulario (el HTML no lleva SVG).
+form.querySelector('button[data-goto]').insertAdjacentHTML('afterbegin', icon('chevronLeft'));
+form.querySelector('button[type="submit"]').insertAdjacentHTML('afterbegin', icon('plus'));
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   setError(document.getElementById('error'), '');
@@ -69,4 +73,5 @@ const switcher = initViewSwitcher({
     lista: renderUsers,
     nuevo: () => {},
   },
+  viewIcon: { lista: 'users', nuevo: 'plus' },
 });

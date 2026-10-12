@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
-import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher } from './ui.js';
+import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher, emptyState, icon } from './ui.js';
 
 const user = await getCurrentUser();
 await renderNav('/productos.html');
@@ -14,6 +14,10 @@ let switcher;
 async function renderProducts() {
   placeholder(productsEl, 'Cargando productos');
   const products = await api('/products');
+  if (!products.length) {
+    productsEl.innerHTML = emptyState('Sin productos en el menú.', 'menu');
+    return;
+  }
   productsEl.innerHTML = products
     .map(
       (p) => `
@@ -64,6 +68,11 @@ if (user.role === 'ADMIN') {
   });
 
   const form = document.getElementById('product-form');
+  // Iconos de los botones del formulario (el HTML no lleva SVG).
+  document.getElementById('add-recipe').insertAdjacentHTML('afterbegin', icon('plus'));
+  form.querySelector('button[data-goto]').insertAdjacentHTML('afterbegin', icon('chevronLeft'));
+  form.querySelector('button[type="submit"]').insertAdjacentHTML('afterbegin', icon('check'));
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById('error');
@@ -109,4 +118,5 @@ switcher = initViewSwitcher({
     lista: renderProducts,
     nuevo: () => {},
   },
+  viewIcon: { lista: 'menu', nuevo: 'plus' },
 });

@@ -1,8 +1,11 @@
 import { api } from './api.js';
 import { setError } from './common.js';
-import { withSubmitting } from './ui.js';
+import { withSubmitting, icon } from './ui.js';
 
 const form = document.getElementById('login-form');
+
+// Icono del boton de ingreso (el HTML no lleva SVG).
+form.querySelector('button[type="submit"]').insertAdjacentHTML('afterbegin', icon('logout'));
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();

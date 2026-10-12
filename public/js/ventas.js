@@ -1,6 +1,6 @@
 import { api, formatMoney } from './api.js';
 import { renderNav, setError } from './common.js';
-import { toast, withSubmitting, formatDate, escapeHtml, placeholder, renderPager, initViewSwitcher } from './ui.js';
+import { toast, withSubmitting, formatDate, escapeHtml, placeholder, renderPager, initViewSwitcher, emptyState, icon } from './ui.js';
 import { renderTable } from './components/table.js';
 
 await renderNav('/ventas.html');
@@ -17,6 +17,11 @@ const totalEl = document.getElementById('sale-total');
 const repeatBtn = document.getElementById('repeat-last');
 const ticketEl = document.getElementById('ticket');
 const ticketBody = document.getElementById('ticket-body');
+
+// Iconos de los botones estaticos del formulario (HTML no lleva SVG).
+repeatBtn.insertAdjacentHTML('afterbegin', icon('refresh'));
+document.querySelector('#sale-form button[type="submit"]').insertAdjacentHTML('afterbegin', icon('cart'));
+document.getElementById('print-ticket').insertAdjacentHTML('afterbegin', icon('print'));
 
 placeholder(rowsEl, 'Cargando productos');
 const products = await api('/products');
@@ -48,9 +53,9 @@ function renderRows() {
       <td>${escapeHtml(p.name)}</td>
       <td>${escapeHtml(p.formattedPrice)}</td>
       <td class="qty-cell">
-        <button type="button" class="qty-btn" data-id="${p.id}" data-step="-1" aria-label="Quitar uno">&minus;</button>
+        <button type="button" class="qty-btn" data-id="${p.id}" data-step="-1" aria-label="Quitar uno">${icon('minus')}</button>
         <input type="number" min="0" step="1" data-id="${p.id}" value="0" />
-        <button type="button" class="qty-btn" data-id="${p.id}" data-step="1" aria-label="Agregar uno">+</button>
+        <button type="button" class="qty-btn" data-id="${p.id}" data-step="1" aria-label="Agregar uno">${icon('plus')}</button>
       </td>
     </tr>`,
     )
@@ -153,7 +158,7 @@ function renderSales(sales) {
       { label: 'Total', render: (s) => formatMoney(s.totalCents) },
     ],
     rows: sales,
-    empty: 'Sin ventas registradas.',
+    emptyHtml: emptyState('Sin ventas registradas.', 'cart'),
   });
 }
 
@@ -184,4 +189,5 @@ initViewSwitcher({
     cobrar: () => {},
     historial: loadSales,
   },
+  viewIcon: { cobrar: 'cart', historial: 'menu' },
 });

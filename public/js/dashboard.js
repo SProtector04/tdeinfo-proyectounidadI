@@ -1,6 +1,8 @@
 import { api, formatMoney } from './api.js';
 import { renderNav } from './common.js';
-import { escapeHtml, formatDate, placeholder } from './ui.js';
+import { escapeHtml, formatDate, placeholder, emptyState, icon } from './ui.js';
+
+const SEVERITY_ICON = { CRITICAL: 'critical', WARNING: 'warning' };
 import { renderTable } from './components/table.js';
 
 await renderNav('/index.html');
@@ -13,6 +15,11 @@ const inventoryEl = document.getElementById('inventory');
 const alertsEl = document.getElementById('alerts');
 const revenueTitle = document.getElementById('revenue-title');
 const periodBar = document.getElementById('period-bar');
+
+// Icono del selector de periodo (el HTML no lleva SVG).
+for (const b of periodBar.querySelectorAll('button[data-days]')) {
+  b.insertAdjacentHTML('afterbegin', icon('refresh'));
+}
 
 const PERIOD_LABEL = { 1: 'hoy', 7: 'últimos 7 días', 30: 'últimos 30 días' };
 let currentDays = 7;
@@ -61,7 +68,7 @@ function renderSeries(data) {
   revenueTitle.textContent = `Ingresos (${PERIOD_LABEL[currentDays]})`;
   const max = Math.max(1, ...data.revenueSeries.map((r) => r.totalCents));
   if (data.revenueSeries.length === 0) {
-    barsEl.innerHTML = '<p class="muted">Sin ventas registradas.</p>';
+    barsEl.innerHTML = emptyState('Sin ventas registradas.', 'cart');
   } else {
     barsEl.innerHTML = '';
     for (const r of data.revenueSeries) {
@@ -92,7 +99,7 @@ function renderTop(data) {
       },
     ],
     rows: data.topProducts,
-    empty: 'Sin datos.',
+    emptyHtml: emptyState('Sin datos en este periodo.', 'menu'),
   });
 }
 
@@ -105,8 +112,8 @@ function renderInventory(data) {
         label: 'Estado',
         render: (i) =>
           i.severity
-            ? `<span class="badge ${i.severity.toLowerCase()}">${i.severity}</span>`
-            : '<span class="badge resolved">OK</span>',
+            ? `<span class="badge icon-badge ${i.severity.toLowerCase()}">${icon(SEVERITY_ICON[i.severity] ?? 'warning')}<span>${i.severity}</span></span>`
+            : `<span class="badge icon-badge resolved">${icon('checkCircle')}<span>OK</span></span>`,
       },
       {
         label: 'Alcanza para',
@@ -117,7 +124,7 @@ function renderInventory(data) {
       },
     ],
     rows: data.inventory,
-    empty: 'Sin insumos registrados.',
+    emptyHtml: emptyState('Sin insumos registrados.', 'box'),
   });
 }
 
@@ -128,18 +135,18 @@ function renderRec(data) {
       { label: 'Preparar', render: (r) => `${r.recommended} unidades` },
     ],
     rows: data.recommendations,
-    empty: 'Sin historial suficiente.',
+    emptyHtml: emptyState('Sin historial suficiente.', 'refresh'),
   });
 }
 
 function renderAlerts(data) {
   alertsEl.innerHTML =
     data.alerts.length === 0
-      ? '<p class="muted">No hay alertas pendientes.</p>'
+      ? emptyState('No hay alertas pendientes.', 'checkCircle')
       : data.alerts
           .map(
             (a) =>
-              `<p><span class="badge ${a.severity.toLowerCase()}">${a.severity}</span> ${escapeHtml(a.message)} <span class="muted">${escapeHtml(formatDate(a.createdAt))}</span> <a href="/alertas.html">Gestionar</a></p>`,
+              `<p><span class="badge icon-badge ${a.severity.toLowerCase()}">${icon(SEVERITY_ICON[a.severity] ?? 'warning')}<span>${a.severity}</span></span> ${escapeHtml(a.message)} <span class="muted">${escapeHtml(formatDate(a.createdAt))}</span> <a href="/alertas.html">Gestionar</a></p>`,
           )
           .join('');
 }
