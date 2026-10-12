@@ -10,6 +10,7 @@ const searchEl = document.getElementById('product-search');
 let ingredients = [];
 let ingredientNames = new Map();
 let ingredientSeverity = new Map();
+let ingredientUnits = new Map();
 let allProducts = [];
 let searchTerm = '';
 let switcher;
@@ -50,19 +51,29 @@ function productImage(name) {
 
 function productCard(p) {
   const short = shortage(p);
-  const recipeLine = p.recipe.length
-    ? p.recipe.map((r) => `${escapeHtml(ingredientNames.get(r.ingredientId) ?? '#' + r.ingredientId)} ${r.quantity}`).join(' · ')
-    : 'No consume inventario';
+  const recipe = p.recipe.length
+    ? `<details class="product-card__recipe">
+        <summary>${icon('chevronRight')}<span>Receta</span></summary>
+        <ul>${p.recipe
+          .map(
+            (r) =>
+              `<li>${escapeHtml(ingredientNames.get(r.ingredientId) ?? '#' + r.ingredientId)} <span class="muted">${r.quantity} ${escapeHtml(ingredientUnits.get(r.ingredientId) ?? '')}</span></li>`,
+          )
+          .join('')}</ul>
+      </details>`
+    : '<p class="product-card__no-recipe muted">No consume inventario</p>';
   return `
     <article class="product-card${short ? ' product-card--short' : ''}">
       <img class="product-card__img" src="${productImage(p.name)}" alt="" loading="lazy" />
-      <div class="product-card__head">
-        <span class="product-card__cat">${escapeHtml(p.category)}</span>
-        <strong class="product-card__price">${escapeHtml(p.formattedPrice)}</strong>
+      <div class="product-card__body">
+        <div class="product-card__head">
+          <span class="product-card__cat">${escapeHtml(p.category)}</span>
+          <strong class="product-card__price">${escapeHtml(p.formattedPrice)}</strong>
+        </div>
+        <h3 class="product-card__name">${escapeHtml(p.name)}</h3>
+        ${recipe}
+        ${short ? `<p class="product-card__alert">${icon('warning')}<span>Falta insumo: ${short.map(escapeHtml).join(', ')}</span></p>` : ''}
       </div>
-      <h3 class="product-card__name">${escapeHtml(p.name)}</h3>
-      <p class="product-card__recipe">${recipeLine}</p>
-      ${short ? `<p class="product-card__alert">${icon('warning')}<span>Falta insumo: ${short.map(escapeHtml).join(', ')}</span></p>` : ''}
     </article>`;
 }
 
@@ -190,6 +201,7 @@ placeholder(productsEl, 'Cargando productos');
 ingredients = await api('/ingredients');
 ingredientNames = new Map(ingredients.map((i) => [i.id, i.name]));
 ingredientSeverity = new Map(ingredients.map((i) => [i.id, i.severity]));
+ingredientUnits = new Map(ingredients.map((i) => [i.id, i.unit]));
 document.getElementById('r-ingredient').innerHTML = ingredients
   .map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`)
   .join('');

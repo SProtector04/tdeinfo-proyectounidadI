@@ -237,14 +237,11 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 0 0 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   overflow: hidden;
 }
-/* La imagen ilustrativa ocupa el alto de la tarjeta; el contenido va con
-   padding horizontal propio. */
+/* La imagen topa la tarjeta; el contenido lleva su propio padding. */
 .product-card__img {
   width: 100%;
   height: 110px;
@@ -254,19 +251,19 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   background: #fdf6ec;
   border-bottom: 1px solid var(--border);
 }
-.product-card__head,
-.product-card__name,
-.product-card__recipe,
-.product-card__alert { margin-left: 14px; margin-right: 14px; }
+.product-card__body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.product-card--short { border-color: #fca5a5; background: #fff7f7; }
 .product-card__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 10px;
-  margin-bottom: 0;
 }
-.product-card--short { border-color: #fca5a5; background: #fff7f7; }
 .product-card__cat {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -281,12 +278,30 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.product-card__recipe { margin: 0; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+.product-card__no-recipe { margin: 0; font-size: 0.8rem; }
+
+/* Receta colapsable: el detalle de insumos no queda siempre visible */
+.product-card__recipe { font-size: 0.8rem; color: var(--muted); }
+.product-card__recipe summary {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-dark);
+  font-weight: 500;
+  list-style: none;
+}
+.product-card__recipe summary::-webkit-details-marker { display: none; }
+.product-card__recipe summary .icon { transition: transform 0.15s ease; }
+.product-card__recipe[open] summary .icon { transform: rotate(90deg); }
+.product-card__recipe ul { margin: 8px 0 0; padding-left: 18px; }
+.product-card__recipe li { line-height: 1.6; }
+
 .product-card__alert {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 2px 0 0;
+  margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--danger);
