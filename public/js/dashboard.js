@@ -85,22 +85,32 @@ function renderSeries(data) {
 }
 
 function renderTop(data) {
-  topEl.innerHTML = renderTable({
-    columns: [
-      { label: 'Producto', render: (p) => escapeHtml(p.name) },
-      { label: 'Cant.', render: (p) => p.quantity },
-      { label: 'Ingreso', render: (p) => formatMoney(p.revenueCents) },
-      {
-        label: 'Margen bruto est.',
-        render: (p) =>
-          p.hasCost
-            ? `${formatMoney(p.marginCents)} <span class="muted">(${p.marginPercent}%)</span>`
-            : '<span class="muted">sin costo</span>',
-      },
-    ],
-    rows: data.topProducts,
-    emptyHtml: emptyState('Sin datos en este periodo.', 'menu'),
-  });
+  if (!data.topProducts.length) {
+    topEl.innerHTML = emptyState('Sin datos en este periodo.', 'menu');
+    return;
+  }
+  // Mini-tarjetas compactas para escaneo rapido (no tablas): conservan
+  // cantidad, ingreso y margen sin sacrificar legibilidad.
+  topEl.innerHTML = `<div class="top-grid">${data.topProducts
+    .map(
+      (p, idx) => `
+      <article class="top-card">
+        <span class="top-card__rank">${idx + 1}</span>
+        <div class="top-card__body">
+          <h3 class="top-card__name">${escapeHtml(p.name)}</h3>
+          <p class="top-card__meta">
+            <span>${p.quantity} vendidos</span>
+            <span class="top-card__rev">${formatMoney(p.revenueCents)}</span>
+          </p>
+          <p class="top-card__margin">${
+            p.hasCost
+              ? `Margen ${formatMoney(p.marginCents)} <span class="muted">(${p.marginPercent}%)</span>`
+              : '<span class="muted">Margen sin costo</span>'
+          }</p>
+        </div>
+      </article>`,
+    )
+    .join('')}</div>`;
 }
 
 function renderInventory(data) {
