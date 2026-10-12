@@ -65,3 +65,13 @@ export function parsePagination(query, { defaultLimit = 50, maxLimit = 200 } = {
   }
   return { limit, offset };
 }
+
+/** Periodo de analitica (dias) desde querystring, acotado. */
+export function parsePeriod(query, { allowed = [1, 7, 30], fallback = 7 } = {}) {
+  const raw = query?.days ?? fallback;
+  const days = Number(raw);
+  if (!allowed.includes(days)) {
+    throw new ValidationError(`days debe ser uno de: ${allowed.join(', ')}`);
+  }
+  return days;
+}

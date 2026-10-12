@@ -10,9 +10,17 @@
   <div id="nav"></div>
   <main>
     <h1>Tablero de decisiones</h1>
+
+    <div class="period-bar" id="period-bar">
+      <span class="muted">Periodo:</span>
+      <button type="button" data-days="1">Hoy</button>
+      <button type="button" data-days="7">7 días</button>
+      <button type="button" data-days="30">30 días</button>
+    </div>
+
     <div class="grid cols-3" id="stats"></div>
 
-    <h2>Ingresos (últimos 7 días)</h2>
+    <h2 id="revenue-title">Ingresos</h2>
     <div class="card"><div class="bars" id="revenue-bars"></div></div>
 
     <div class="grid cols-2">
@@ -25,6 +33,9 @@
         <div class="card" id="recommendations"></div>
       </div>
     </div>
+
+    <h2>Días de inventario restante</h2>
+    <div class="card" id="inventory"></div>
 
     <h2>Alertas pendientes</h2>
     <div class="card" id="alerts"></div>

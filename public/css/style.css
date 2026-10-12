@@ -267,3 +267,23 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   .sale-actions button { flex: 1; }
   .qty-cell input { max-width: 56px; }
 }
+
+/* Tablero: selector de periodo y variacion vs periodo anterior */
+.period-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.period-bar button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.period-bar button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.stat .delta { margin-top: 4px; font-size: 0.78rem; }
+.change.up { color: var(--accent); }
+.change.down { color: var(--danger); }
+.change.flat { color: var(--muted); }

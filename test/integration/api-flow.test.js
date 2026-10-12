@@ -93,9 +93,19 @@ test('flujo completo: login -> venta -> visible en tablero y listado', async (t)
 
   const dashboard = await api('/api/dashboard', { token: adminToken });
   assert.equal(dashboard.status, 200);
-  assert.ok(dashboard.data.today.count >= 1, 'el tablero cuenta ventas de hoy');
-  assert.ok(dashboard.data.today.revenueCents >= 3 * fresco.priceCents);
+  assert.ok(dashboard.data.summary.count >= 1, 'el tablero cuenta ventas de la ventana');
+  assert.ok(dashboard.data.summary.revenueCents >= 3 * fresco.priceCents);
   assert.ok(Array.isArray(dashboard.data.revenueSeries));
+  assert.ok(Array.isArray(dashboard.data.topProducts));
+  assert.ok(Array.isArray(dashboard.data.inventory));
+  assert.ok('changePercent' in dashboard.data, 'expone la variacion vs periodo anterior');
+
+  const today = await api('/api/dashboard?days=1', { token: adminToken });
+  assert.equal(today.status, 200);
+  assert.equal(today.data.days, 1);
+
+  const bad = await api('/api/dashboard?days=5', { token: adminToken });
+  assert.equal(bad.status, 400, 'solo se aceptan periodos 1, 7 o 30');
 });
 
 test('autorizacion: cajero no puede consultar usuarios (403)', async (t) => {
