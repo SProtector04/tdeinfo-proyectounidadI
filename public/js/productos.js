@@ -33,6 +33,17 @@ function shortage(product) {
 }
 
 /** Tarjeta de producto: nombre, categoria, precio destacado y receta. */
+// Imagen ilustrativa por categoria (SVG local, licencia propia). Fallback
+// generico cuando la categoria no tiene ilustracion dedicada.
+const CATEGORY_IMAGE = {
+  Quesillo: '/img/quesillo.svg',
+  Bebida: '/img/bebida.svg',
+};
+
+function productImage(category) {
+  return CATEGORY_IMAGE[category] ?? '/img/generico.svg';
+}
+
 function productCard(p) {
   const short = shortage(p);
   const recipeLine = p.recipe.length
@@ -40,6 +51,7 @@ function productCard(p) {
     : 'No consume inventario';
   return `
     <article class="product-card${short ? ' product-card--short' : ''}">
+      <img class="product-card__img" src="${productImage(p.category)}" alt="" loading="lazy" />
       <div class="product-card__head">
         <span class="product-card__cat">${escapeHtml(p.category)}</span>
         <strong class="product-card__price">${escapeHtml(p.formattedPrice)}</strong>

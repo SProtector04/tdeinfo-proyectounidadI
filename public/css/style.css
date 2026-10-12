@@ -237,18 +237,35 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 0 0 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow: hidden;
 }
-.product-card--short { border-color: #fca5a5; background: #fff7f7; }
+/* La imagen ilustrativa ocupa el alto de la tarjeta; el contenido va con
+   padding horizontal propio. */
+.product-card__img {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+  display: block;
+  background: #fdf6ec;
+  border-bottom: 1px solid var(--border);
+}
+.product-card__head,
+.product-card__name,
+.product-card__recipe,
+.product-card__alert { margin-left: 14px; margin-right: 14px; }
 .product-card__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 0;
 }
+.product-card--short { border-color: #fca5a5; background: #fff7f7; }
 .product-card__cat {
   font-size: 0.75rem;
   text-transform: uppercase;

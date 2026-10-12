@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" role="img" aria-label="Quesillo">
+  <rect width="160" height="100" fill="#fdf6ec"/>
+  <ellipse cx="80" cy="82" rx="52" ry="7" fill="#e7dfd3"/>
+  <path d="M40 78 L40 44 Q80 30 120 44 L120 78 Q80 92 40 78 Z" fill="#f3e3c3" stroke="#d9a441" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M40 44 Q80 30 120 44" fill="none" stroke="#d9a441" stroke-width="2"/>
+  <path d="M52 52 Q80 42 108 52 L108 62 Q80 72 52 62 Z" fill="#fffdf7" opacity="0.9"/>
+  <circle cx="80" cy="48" r="4" fill="#d97706"/>
+  <circle cx="66" cy="55" r="2.5" fill="#d97706" opacity="0.7"/>
+  <circle cx="94" cy="55" r="2.5" fill="#d97706" opacity="0.7"/>
+</svg>

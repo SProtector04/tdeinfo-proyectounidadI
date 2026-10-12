@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" role="img" aria-label="Producto del menú">
+  <rect width="160" height="100" fill="#fdf6ec"/>
+  <ellipse cx="80" cy="80" rx="46" ry="7" fill="#e7dfd3"/>
+  <circle cx="80" cy="52" r="26" fill="#fffdf7" stroke="#d9a441" stroke-width="2"/>
+  <circle cx="80" cy="52" r="18" fill="none" stroke="#e7dfd3" stroke-width="2"/>
+  <path d="M62 52 h36 M80 34 v36" stroke="#d97706" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+</svg>
