@@ -64,24 +64,53 @@ function renderStats(data) {
   `;
 }
 
+/** Redondea el techo del eje a un valor "redondo" legible. */
+function niceCeil(value) {
+  if (value <= 0) return 1;
+  const pow = Math.pow(10, Math.floor(Math.log10(value)));
+  const n = value / pow;
+  const step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((s) => n <= s) ?? 10;
+  return Math.round(step * pow);
+}
+
 function renderSeries(data) {
   revenueTitle.textContent = `Ingresos (${PERIOD_LABEL[currentDays]})`;
-  const max = Math.max(1, ...data.revenueSeries.map((r) => r.totalCents));
-  if (data.revenueSeries.length === 0) {
+  const series = data.revenueSeries;
+  if (series.length === 0) {
     barsEl.innerHTML = emptyState('Sin ventas registradas.', 'cart');
-  } else {
-    barsEl.innerHTML = '';
-    for (const r of data.revenueSeries) {
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.style.height = `${Math.max(4, Math.round((r.totalCents / max) * 100))}px`;
-      bar.title = `${r.date}: ${formatMoney(r.totalCents)}`;
-      const span = document.createElement('span');
-      span.textContent = r.date.slice(5);
-      bar.appendChild(span);
-      barsEl.appendChild(bar);
-    }
+    return;
   }
+
+  // Escala visible: el techo del eje se redondea para que las etiquetas sean legibles.
+  const max = Math.max(1, ...series.map((r) => r.totalCents));
+  const top = niceCeil(max);
+  const ticks = [top, Math.round(top / 2), 0];
+  const axis = ticks.map((v) => `<span>${escapeHtml(formatMoney(v))}</span>`).join('');
+  const grid = ticks.map(() => '<span></span>').join('');
+
+  const bars = series
+    .map((r) => {
+      const pct = Math.max(1.5, (r.totalCents / top) * 100);
+      const tip = `${escapeHtml(r.date.slice(5))} · ${escapeHtml(formatMoney(r.totalCents))}`;
+      return `<div class="bar" tabindex="0" style="height:${pct.toFixed(2)}%"><span class="bar__tip">${tip}</span></div>`;
+    })
+    .join('');
+  const labels =
+    series.length <= 16
+      ? `<div class="chart__labels">${series.map((r) => `<span>${escapeHtml(r.date.slice(5))}</span>`).join('')}</div>`
+      : '';
+
+  barsEl.innerHTML = `
+    <div class="chart">
+      <div class="chart__axis">${axis}</div>
+      <div class="chart__main">
+        <div class="chart__plot">
+          <div class="chart__grid">${grid}</div>
+          <div class="chart__bars">${bars}</div>
+        </div>
+        ${labels}
+      </div>
+    </div>`;
 }
 
 function renderTop(data) {
