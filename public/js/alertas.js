@@ -1,35 +1,36 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser } from './common.js';
-import { toast, formatDate, escapeHtml, placeholder, emptyState, icon } from './ui.js';
+import { toast, formatDate, escapeHtml, placeholder, emptyState, icon, renderPager } from './ui.js';
 
 const SEVERITY_ICON = { CRITICAL: 'critical', WARNING: 'warning' };
+const PAGE_SIZE = 15;
 
 const user = await getCurrentUser();
 await renderNav('/alertas.html');
 
 const summaryEl = document.getElementById('alert-summary');
 const alertsEl = document.getElementById('alerts');
+const pagerEl = document.getElementById('alerts-pager');
 const filtersEl = document.getElementById('alert-filters');
 placeholder(summaryEl, 'Cargando resumen');
 placeholder(alertsEl, 'Cargando alertas');
 
 const isAdmin = user.role === 'ADMIN';
 let statusFilter = '';
+let offset = 0;
 
-function renderSummary(alerts) {
-  const counts = { CRITICAL: 0, WARNING: 0 };
-  for (const a of alerts) if (a.severity in counts) counts[a.severity] += 1;
+function renderSummary(summary) {
   summaryEl.innerHTML = `
     <div class="card stat stat--critical">
-      <div class="value">${counts.CRITICAL}</div>
+      <div class="value">${summary.CRITICAL}</div>
       <div class="label">Críticas abiertas</div>
     </div>
     <div class="card stat stat--warning">
-      <div class="value">${counts.WARNING}</div>
+      <div class="value">${summary.WARNING}</div>
       <div class="label">Avisos abiertos</div>
     </div>
     <div class="card stat stat--total">
-      <div class="value">${alerts.length}</div>
+      <div class="value">${summary.total}</div>
       <div class="label">Total abiertas</div>
     </div>
   `;
@@ -90,18 +91,35 @@ function renderAlertsList(alerts) {
 
 async function load() {
   placeholder(alertsEl, 'Cargando alertas');
-  const query = statusFilter ? `?status=${statusFilter}` : '';
-  const alerts = await api('/alerts' + query);
-  // El resumen siempre refleja las abiertas (lo que importa decidir).
-  const openAlerts = statusFilter === 'RESOLVED' ? await api('/alerts?status=OPEN') : alerts;
-  renderSummary(openAlerts);
-  renderAlertsList(alerts);
+  const params = new URLSearchParams({ limit: String(PAGE_SIZE + 1), offset: String(offset) });
+  if (statusFilter) params.set('status', statusFilter);
+
+  const [summary, raw] = await Promise.all([api('/alerts/summary'), api(`/alerts?${params.toString()}`)]);
+
+  // Si la pagina quedo vacia tras resolver (offset mayor al total), retrocede.
+  if (raw.length === 0 && offset > 0) {
+    offset = Math.max(0, offset - PAGE_SIZE);
+    return load();
+  }
+
+  renderSummary(summary);
+  renderAlertsList(raw.slice(0, PAGE_SIZE));
+  renderPager(pagerEl, {
+    offset,
+    limit: PAGE_SIZE,
+    fetched: raw.length,
+    onChange: async (next) => {
+      offset = next;
+      await load();
+    },
+  });
 }
 
 filtersEl.addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-status]');
   if (!btn) return;
   statusFilter = btn.dataset.status;
+  offset = 0;
   filtersEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
   await load();
 });

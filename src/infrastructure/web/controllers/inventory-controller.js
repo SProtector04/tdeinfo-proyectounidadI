@@ -5,6 +5,7 @@ export function inventoryController({
   adjustStock,
   listMovements,
   listAlerts,
+  alertSummary,
   resolveAlert,
   listAudit,
 }) {
@@ -41,7 +42,17 @@ export function inventoryController({
 
     async listAlerts(req, res, next) {
       try {
-        const result = await listAlerts.execute({ status: req.query.status ?? null });
+        const { limit, offset } = parsePagination(req.query, { defaultLimit: 15 });
+        const result = await listAlerts.execute({ status: req.query.status ?? null, limit, offset });
+        res.json(result);
+      } catch (err) {
+        next(err);
+      }
+    },
+
+    async alertSummary(_req, res, next) {
+      try {
+        const result = await alertSummary.execute();
         res.json(result);
       } catch (err) {
         next(err);

@@ -87,8 +87,24 @@ export class ListAlerts {
     this.inventoryRepository = inventoryRepository;
   }
 
-  async execute({ status = null } = {}) {
-    return this.inventoryRepository.listAlerts({ status });
+  async execute({ status = null, limit = 50, offset = 0 } = {}) {
+    return this.inventoryRepository.listAlerts({ status, limit, offset });
+  }
+}
+
+export class GetAlertSummary {
+  constructor({ inventoryRepository }) {
+    this.inventoryRepository = inventoryRepository;
+  }
+
+  async execute() {
+    const rows = await this.inventoryRepository.countOpenAlertsBySeverity();
+    const summary = { CRITICAL: 0, WARNING: 0, total: 0 };
+    for (const r of rows) {
+      if (r.severity in summary) summary[r.severity] = r.count;
+      summary.total += r.count;
+    }
+    return summary;
   }
 }
 

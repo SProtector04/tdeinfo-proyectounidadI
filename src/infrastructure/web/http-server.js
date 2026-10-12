@@ -59,6 +59,7 @@ export function createHttpServer({ authRepository, tokenService, controllers }) 
   api.post('/inventory/adjust', authorizeAdmin, controllers.inventory.adjustStock);
   api.get('/inventory/movements', authorizeAdmin, controllers.inventory.listMovements);
   api.get('/alerts', authorizeStaff, controllers.inventory.listAlerts);
+  api.get('/alerts/summary', authorizeStaff, controllers.inventory.alertSummary);
   api.post('/alerts/:id/resolve', authorizeAdmin, controllers.inventory.resolveAlert);
   api.get('/audit', authorizeAdmin, controllers.inventory.listAudit);
 

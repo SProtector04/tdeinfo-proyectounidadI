@@ -59,14 +59,15 @@ export class PostgresInventoryRepository extends InventoryRepository {
     return rows[0].id;
   }
 
-  async listAlerts({ status = null } = {}) {
+  async listAlerts({ status = null, limit = 50, offset = 0 } = {}) {
     let sql = 'SELECT * FROM alerts';
     const params = [];
     if (status) {
       sql += ' WHERE status = $1';
       params.push(status);
     }
-    sql += ' ORDER BY id DESC';
+    sql += ` ORDER BY id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
     const rows = await this.db.query(sql, params);
     return rows.map((r) => ({
       id: r.id,
@@ -77,6 +78,14 @@ export class PostgresInventoryRepository extends InventoryRepository {
       createdAt: r.created_at,
       resolvedAt: r.resolved_at,
     }));
+  }
+
+  /** Conteo de alertas abiertas por severidad (para el resumen). */
+  async countOpenAlertsBySeverity() {
+    const rows = await this.db.query(
+      `SELECT severity, COUNT(*)::int AS count FROM alerts WHERE status = 'OPEN' GROUP BY severity`,
+    );
+    return rows.map((r) => ({ severity: r.severity, count: r.count }));
   }
 
   async resolveAlert(id) {
