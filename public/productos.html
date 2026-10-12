@@ -9,17 +9,26 @@
 <body>
   <div id="nav"></div>
   <main>
-    <h1>Productos del menu</h1>
-    <div class="card" id="products"></div>
+    <div class="view-tabs" id="view-tabs">
+      <button type="button" data-view-link="lista">Lista</button>
+      <button type="button" data-view-link="nuevo" id="tab-nuevo" class="hidden">Nuevo producto</button>
+    </div>
 
-    <div id="admin-section" class="hidden">
-      <h2>Nuevo producto</h2>
+    <!-- Vista 1: lista de productos -->
+    <section data-view="lista">
+      <h1>Productos del menú</h1>
+      <div class="card" id="products"></div>
+    </section>
+
+    <!-- Vista 2: formulario de alta (solo admin) -->
+    <section data-view="nuevo" class="hidden">
+      <h1>Nuevo producto</h1>
       <div class="card">
         <form id="product-form">
           <div class="row">
             <div><label>Nombre</label><input id="p-name" required /></div>
             <div><label>Categoría</label><input id="p-category" required /></div>
-            <div><label>Precio (cordobas)</label><input id="p-price" type="number" min="0" step="0.01" required /></div>
+            <div><label>Precio (córdobas)</label><input id="p-price" type="number" min="0" step="0.01" required /></div>
           </div>
           <label>Receta (insumos consumidos por unidad)</label>
           <div id="recipe-rows"></div>
@@ -32,10 +41,13 @@
             <div><button type="button" id="add-recipe" class="ghost">Agregar insumo</button></div>
           </div>
           <p id="error" class="error"></p>
-          <button type="submit" class="mt-12">Crear producto</button>
+          <div class="view-head mt-12">
+            <button type="button" class="ghost" data-goto="lista">Volver</button>
+            <button type="submit">Crear producto</button>
+          </div>
         </form>
       </div>
-    </div>
+    </section>
   </main>
   <script type="module" src="/js/productos.js"></script>
 </body>

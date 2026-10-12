@@ -9,39 +9,59 @@
 <body>
   <div id="nav"></div>
   <main>
-    <h1>Inventario de insumos</h1>
-    <div class="card" id="ingredients"></div>
-
-    <div class="grid cols-2">
-      <div>
-        <h2>Entrada de stock</h2>
-        <div class="card">
-          <form id="add-form">
-            <label>Insumo</label><select id="a-ingredient" required></select>
-            <label>Cantidad</label><input id="a-qty" type="number" min="0" step="0.001" required />
-            <label>Motivo</label><input id="a-reason" placeholder="Compra a proveedor" />
-            <p id="add-error" class="error"></p>
-            <button type="submit" class="mt-10">Registrar entrada</button>
-          </form>
-        </div>
-      </div>
-      <div>
-        <h2>Ajuste de stock</h2>
-        <div class="card">
-          <form id="adjust-form">
-            <label>Insumo</label><select id="j-ingredient" required></select>
-            <label>Stock objetivo</label><input id="j-target" type="number" min="0" step="0.001" required />
-            <label>Motivo</label><input id="j-reason" placeholder="Conteo fisico / merma" />
-            <p id="adjust-error" class="error"></p>
-            <button type="submit" class="mt-10">Ajustar</button>
-          </form>
-        </div>
-      </div>
+    <div class="view-tabs" id="view-tabs">
+      <button type="button" data-view-link="estado">Estado</button>
+      <button type="button" data-view-link="entrada">Entrada de stock</button>
+      <button type="button" data-view-link="ajuste">Ajuste de stock</button>
+      <button type="button" data-view-link="movimientos">Movimientos</button>
     </div>
 
-    <h2>Movimientos recientes</h2>
-    <div class="card" id="movements"></div>
-    <div class="pager" id="movements-pager"></div>
+    <!-- Vista 1: estado actual del inventario -->
+    <section data-view="estado">
+      <h1>Insumos</h1>
+      <div class="card" id="ingredients"></div>
+    </section>
+
+    <!-- Vista 2: entrada de stock -->
+    <section data-view="entrada" class="hidden">
+      <h1>Entrada de stock</h1>
+      <div class="card">
+        <form id="add-form">
+          <label>Insumo</label><select id="a-ingredient" required></select>
+          <label>Cantidad</label><input id="a-qty" type="number" min="0" step="0.001" required />
+          <label>Motivo</label><input id="a-reason" placeholder="Compra a proveedor" />
+          <p id="add-error" class="error"></p>
+          <div class="view-head mt-12">
+            <button type="button" class="ghost" data-goto="estado">Volver</button>
+            <button type="submit">Registrar entrada</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Vista 3: ajuste de stock -->
+    <section data-view="ajuste" class="hidden">
+      <h1>Ajuste de stock</h1>
+      <div class="card">
+        <form id="adjust-form">
+          <label>Insumo</label><select id="j-ingredient" required></select>
+          <label>Stock objetivo</label><input id="j-target" type="number" min="0" step="0.001" required />
+          <label>Motivo</label><input id="j-reason" placeholder="Conteo físico / merma" />
+          <p id="adjust-error" class="error"></p>
+          <div class="view-head mt-12">
+            <button type="button" class="ghost" data-goto="estado">Volver</button>
+            <button type="submit">Ajustar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Vista 4: movimientos paginados -->
+    <section data-view="movimientos" class="hidden">
+      <h1>Movimientos recientes</h1>
+      <div class="card" id="movements"></div>
+      <div class="pager" id="movements-pager"></div>
+    </section>
   </main>
   <script type="module" src="/js/inventario.js"></script>
 </body>

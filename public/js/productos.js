@@ -1,17 +1,18 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
-import { toast, withSubmitting, escapeHtml, placeholder } from './ui.js';
+import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher } from './ui.js';
 
 const user = await getCurrentUser();
 await renderNav('/productos.html');
 
 const productsEl = document.getElementById('products');
-placeholder(productsEl, 'Cargando productos');
+let ingredients = [];
+let ingredientNames = new Map();
+let switcher;
 
-const [ingredients] = await Promise.all([api('/ingredients')]);
-const ingredientNames = new Map(ingredients.map((i) => [i.id, i.name]));
-
+// --- Vista: Lista ---
 async function renderProducts() {
+  placeholder(productsEl, 'Cargando productos');
   const products = await api('/products');
   productsEl.innerHTML = products
     .map(
@@ -27,15 +28,14 @@ async function renderProducts() {
     .join('');
 }
 
-await renderProducts();
-
+// --- Vista: Nuevo producto (admin) ---
 if (user.role === 'ADMIN') {
-  document.getElementById('admin-section').classList.remove('hidden');
-  const select = document.getElementById('r-ingredient');
-  select.innerHTML = ingredients.map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`).join('');
+  document.getElementById('tab-nuevo').classList.remove('hidden');
 
+  const select = document.getElementById('r-ingredient');
   const recipe = new Map(); // ingredientId -> quantity
   const recipeRows = document.getElementById('recipe-rows');
+
   const renderRecipe = () => {
     recipeRows.innerHTML = [...recipe.entries()]
       .map(
@@ -83,9 +83,30 @@ if (user.role === 'ADMIN') {
         renderRecipe();
         toast(`Producto "${payload.name}" creado.`);
         await renderProducts();
+        switcher.go('lista');
       });
     } catch (err) {
       setError(errorEl, err.message);
     }
   });
+
+  document.querySelectorAll('button[data-goto]').forEach((b) =>
+    b.addEventListener('click', () => switcher.go(b.dataset.goto)),
+  );
 }
+
+// --- Arranque: cargar insumos (necesarios para la lista y el select) ---
+placeholder(productsEl, 'Cargando productos');
+ingredients = await api('/ingredients');
+ingredientNames = new Map(ingredients.map((i) => [i.id, i.name]));
+document.getElementById('r-ingredient').innerHTML = ingredients
+  .map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`)
+  .join('');
+
+switcher = initViewSwitcher({
+  defaultView: 'lista',
+  onEnter: {
+    lista: renderProducts,
+    nuevo: () => {},
+  },
+});

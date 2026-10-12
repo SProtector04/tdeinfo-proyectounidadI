@@ -287,3 +287,28 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .change.up { color: var(--accent); }
 .change.down { color: var(--danger); }
 .change.flat { color: var(--muted); }
+
+/* Tabs de vistas (arquitectura de informacion: una vista enfocada por vez) */
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.view-tabs button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.view-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Cabecera de vista con accion principal a la derecha */
+.view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.view-head h2 { margin: 0; }

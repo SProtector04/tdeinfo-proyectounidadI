@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
-import { toast, withSubmitting, formatDate, escapeHtml, placeholder, renderPager } from './ui.js';
+import { toast, withSubmitting, formatDate, escapeHtml, placeholder, renderPager, initViewSwitcher } from './ui.js';
 import { renderTable } from './components/table.js';
 
 const user = await getCurrentUser();
@@ -12,19 +12,17 @@ await renderNav('/inventario.html');
 
 const PAGE_SIZE = 20;
 let movementsOffset = 0;
-
-const ingredientsEl = document.getElementById('ingredients');
-const movementsEl = document.getElementById('movements');
-const movementsPager = document.getElementById('movements-pager');
-placeholder(ingredientsEl, 'Cargando insumos');
-placeholder(movementsEl, 'Cargando movimientos');
-
-const addForm = document.getElementById('add-form');
-const adjustForm = document.getElementById('adjust-form');
-
 let ingredients = [];
+let switcher;
+
+// --- Vista: Estado (tabla ordenada por urgencia, acciones por fila) ---
+const ingredientsEl = document.getElementById('ingredients');
 
 function renderIngredients() {
+  const sorted = [...ingredients].sort((a, b) => {
+    const rank = (x) => (x.severity === 'CRITICAL' ? 0 : x.severity === 'WARNING' ? 1 : 2);
+    return rank(a) - rank(b);
+  });
   ingredientsEl.innerHTML = renderTable({
     columns: [
       { label: 'Insumo', render: (i) => escapeHtml(i.name) },
@@ -37,14 +35,44 @@ function renderIngredients() {
             ? `<span class="badge ${i.severity.toLowerCase()}">${i.severity}</span>`
             : '<span class="badge resolved">OK</span>',
       },
+      {
+        label: 'Acciones',
+        render: (i) => `
+          <button type="button" class="ghost" data-entry="${i.id}">Entrada</button>
+          <button type="button" class="ghost" data-adjust="${i.id}">Ajuste</button>`,
+      },
     ],
-    rows: ingredients,
+    rows: sorted,
     empty: 'Sin insumos.',
   });
-  const options = ingredients.map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`).join('');
+  ingredientsEl.querySelectorAll('button[data-entry]').forEach((b) =>
+    b.addEventListener('click', () => {
+      document.getElementById('a-ingredient').value = b.dataset.entry;
+      switcher.go('entrada');
+    }),
+  );
+  ingredientsEl.querySelectorAll('button[data-adjust]').forEach((b) =>
+    b.addEventListener('click', () => {
+      document.getElementById('j-ingredient').value = b.dataset.adjust;
+      switcher.go('ajuste');
+    }),
+  );
+  const options = ingredients
+    .map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`)
+    .join('');
   document.getElementById('a-ingredient').innerHTML = options;
   document.getElementById('j-ingredient').innerHTML = options;
 }
+
+async function loadIngredients() {
+  placeholder(ingredientsEl, 'Cargando insumos');
+  ingredients = await api('/ingredients');
+  renderIngredients();
+}
+
+// --- Vista: Movimientos (paginada, bajo demanda) ---
+const movementsEl = document.getElementById('movements');
+const movementsPager = document.getElementById('movements-pager');
 
 function renderMovements(movements) {
   movementsEl.innerHTML = renderTable({
@@ -62,6 +90,7 @@ function renderMovements(movements) {
 }
 
 async function loadMovements() {
+  placeholder(movementsEl, 'Cargando movimientos');
   const raw = await api(`/inventory/movements?limit=${PAGE_SIZE + 1}&offset=${movementsOffset}`);
   renderMovements(raw.slice(0, PAGE_SIZE));
   renderPager(movementsPager, {
@@ -75,14 +104,9 @@ async function loadMovements() {
   });
 }
 
-async function refresh() {
-  ingredients = await api('/ingredients');
-  renderIngredients();
-  movementsOffset = 0;
-  await loadMovements();
-}
-
-await refresh();
+// --- Formularios: entrada y ajuste ---
+const addForm = document.getElementById('add-form');
+const adjustForm = document.getElementById('adjust-form');
 
 addForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -100,7 +124,8 @@ addForm.addEventListener('submit', async (e) => {
       document.getElementById('a-qty').value = '';
       document.getElementById('a-reason').value = '';
       toast('Entrada de stock registrada.');
-      await refresh();
+      await loadIngredients();
+      switcher.go('estado');
     });
   } catch (err) {
     setError(document.getElementById('add-error'), err.message);
@@ -123,9 +148,26 @@ adjustForm.addEventListener('submit', async (e) => {
       document.getElementById('j-target').value = '';
       document.getElementById('j-reason').value = '';
       toast('Stock ajustado.');
-      await refresh();
+      await loadIngredients();
+      switcher.go('estado');
     });
   } catch (err) {
     setError(document.getElementById('adjust-error'), err.message);
   }
+});
+
+// --- Botones «Volver» ---
+document.querySelectorAll('button[data-goto]').forEach((b) =>
+  b.addEventListener('click', () => switcher.go(b.dataset.goto)),
+);
+
+// --- Selector de vistas ---
+switcher = initViewSwitcher({
+  defaultView: 'estado',
+  onEnter: {
+    estado: loadIngredients,
+    entrada: loadIngredients,
+    ajuste: loadIngredients,
+    movimientos: loadMovements,
+  },
 });

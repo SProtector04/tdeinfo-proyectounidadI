@@ -81,3 +81,60 @@ export function renderPager(container, { offset, limit, fetched, onChange }) {
   container.querySelector('[data-page="prev"]').addEventListener('click', () => onChange(Math.max(0, offset - limit)));
   container.querySelector('[data-page="next"]').addEventListener('click', () => onChange(offset + limit));
 }
+
+/**
+ * Cambia entre varias vistas de una misma pagina usando el hash de la URL
+ * (p. ej. `#historial`). Cada vista es un elemento con `data-view`. El boton
+ * «atras» del navegador funciona y el enlace es compartible.
+ *
+ * @param {object} params
+ * @param {string} params.defaultView Vista por defecto si no hay hash.
+ * @param {Record<string, () => void | Promise<void>>} params.onEnter
+ *        Mapa vista -> callback al mostrarse (para cargar datos solo cuando
+ *        se necesita, en lugar de todo al cargar la pagina).
+ * @returns {{ current: () => string, go: (v: string) => void }}
+ */
+export function initViewSwitcher({ defaultView, onEnter }) {
+  const views = [...document.querySelectorAll('[data-view]')];
+  const links = [...document.querySelectorAll('[data-view-link]')];
+  let current = null;
+
+  function viewFromHash() {
+    const name = window.location.hash.replace(/^#/, '');
+    return onEnter[name] ? name : defaultView;
+  }
+
+  async function show(name) {
+    if (name === current) return;
+    current = name;
+    for (const v of views) v.classList.toggle('hidden', v.dataset.view !== name);
+    for (const a of links) a.classList.toggle('active', a.dataset.viewLink === name);
+    const enter = onEnter[name];
+    if (enter) await enter();
+  }
+
+  function go(name) {
+    if (name === defaultView) {
+      // Sin hash: URL limpia y vista por defecto.
+      if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+      show(defaultView);
+    } else if (window.location.hash === `#${name}`) {
+      show(name);
+    } else {
+      window.location.hash = name;
+    }
+  }
+
+  window.addEventListener('hashchange', () => show(viewFromHash()));
+
+  for (const a of links) {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      go(a.dataset.viewLink);
+    });
+  }
+
+  show(viewFromHash());
+
+  return { current: () => current, go };
+}

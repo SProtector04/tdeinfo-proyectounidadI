@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
-import { toast, withSubmitting, escapeHtml, placeholder } from './ui.js';
+import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher } from './ui.js';
 import { renderTable } from './components/table.js';
 
 const user = await getCurrentUser();
@@ -10,10 +10,11 @@ if (user.role !== 'ADMIN') {
 }
 await renderNav('/usuarios.html');
 
+// --- Vista: Lista ---
 const usersEl = document.getElementById('users');
-placeholder(usersEl, 'Cargando usuarios');
 
 async function renderUsers() {
+  placeholder(usersEl, 'Cargando usuarios');
   const users = await api('/users');
   usersEl.innerHTML = renderTable({
     columns: [
@@ -23,15 +24,14 @@ async function renderUsers() {
         label: 'Rol',
         render: (u) => `<span class="badge ${u.role.toLowerCase()}">${u.role}</span>`,
       },
-      { label: 'Activo', render: (u) => (u.active ? 'Si' : 'No') },
+      { label: 'Activo', render: (u) => (u.active ? 'Sí' : 'No') },
     ],
     rows: users,
     empty: 'Sin usuarios.',
   });
 }
 
-await renderUsers();
-
+// --- Vista: Nuevo usuario ---
 const form = document.getElementById('user-form');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -51,8 +51,22 @@ form.addEventListener('submit', async (e) => {
       form.reset();
       toast(`Usuario "${username}" creado.`);
       await renderUsers();
+      switcher.go('lista');
     });
   } catch (err) {
     setError(document.getElementById('error'), err.message);
   }
+});
+
+document.querySelectorAll('button[data-goto]').forEach((b) =>
+  b.addEventListener('click', () => switcher.go(b.dataset.goto)),
+);
+
+// --- Selector de vistas ---
+const switcher = initViewSwitcher({
+  defaultView: 'lista',
+  onEnter: {
+    lista: renderUsers,
+    nuevo: () => {},
+  },
 });

@@ -9,25 +9,39 @@
 <body>
   <div id="nav"></div>
   <main>
-    <h1>Usuarios</h1>
-    <div class="card" id="users"></div>
-
-    <h2>Nuevo usuario</h2>
-    <div class="card">
-      <form id="user-form">
-        <div class="row">
-          <div><label>Nombre</label><input id="u-name" required /></div>
-          <div><label>Usuario</label><input id="u-username" required /></div>
-          <div><label>Contraseña</label><input id="u-password" type="password" required /></div>
-          <div>
-            <label>Rol</label>
-            <select id="u-role"><option value="CAJERO">CAJERO</option><option value="ADMIN">ADMIN</option></select>
-          </div>
-        </div>
-        <p id="error" class="error"></p>
-          <button type="submit" class="mt-12">Crear usuario</button>
-      </form>
+    <div class="view-tabs" id="view-tabs">
+      <button type="button" data-view-link="lista">Lista</button>
+      <button type="button" data-view-link="nuevo">Nuevo usuario</button>
     </div>
+
+    <!-- Vista 1: lista de usuarios -->
+    <section data-view="lista">
+      <h1>Usuarios</h1>
+      <div class="card" id="users"></div>
+    </section>
+
+    <!-- Vista 2: formulario de alta -->
+    <section data-view="nuevo" class="hidden">
+      <h1>Nuevo usuario</h1>
+      <div class="card">
+        <form id="user-form">
+          <div class="row">
+            <div><label>Nombre</label><input id="u-name" required /></div>
+            <div><label>Usuario</label><input id="u-username" required /></div>
+            <div><label>Contraseña</label><input id="u-password" type="password" required /></div>
+            <div>
+              <label>Rol</label>
+              <select id="u-role"><option value="CAJERO">CAJERO</option><option value="ADMIN">ADMIN</option></select>
+            </div>
+          </div>
+          <p id="error" class="error"></p>
+          <div class="view-head mt-12">
+            <button type="button" class="ghost" data-goto="lista">Volver</button>
+            <button type="submit">Crear usuario</button>
+          </div>
+        </form>
+      </div>
+    </section>
   </main>
   <script type="module" src="/js/usuarios.js"></script>
 </body>
