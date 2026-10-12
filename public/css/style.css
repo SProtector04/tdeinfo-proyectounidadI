@@ -10,6 +10,7 @@
   --warn: #b45309;
   --border: #e7dfd3;
   --radius: 10px;
+  --stack-cost: #cdbfa6;
 }
 
 * { box-sizing: border-box; }
@@ -544,47 +545,74 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .view-head h2 { margin: 0; }
 
-/* Tablero: mini-tarjetas de productos mas vendidos */
-.top-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 10px;
-}
-.top-card {
+/* Tablero: productos mas vendidos como barras apiladas (venta bruta =
+   costo + ganancia bruta). La longitud total es la venta bruta; el reparto
+   interno muestra el costo (neutro) y la ganancia (verde). */
+.stack-chart { display: flex; flex-direction: column; gap: 9px; }
+.stack-legend {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.top-card__rank {
-  flex: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-.top-card__body { min-width: 0; }
-.top-card__name { margin: 0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.top-card__meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 2px 0 0;
-  font-size: 0.82rem;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
   color: var(--muted);
 }
-.top-card__rev { font-weight: 600; color: var(--text); }
-.top-card__margin { margin: 2px 0 0; font-size: 0.78rem; color: var(--accent); }
-.top-card__margin .muted { color: var(--muted); }
+.stack-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.swatch--cost { background: var(--stack-cost); }
+.swatch--gain { background: var(--accent); }
 
-@media (max-width: 720px) {
-  .top-grid { grid-template-columns: 1fr; }
+.stack-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 150px) 1fr;
+  align-items: center;
+  gap: 10px;
 }
+.stack-row__label {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stack-row__track {
+  position: relative;
+  height: 22px;
+  background: var(--bg);
+  border-radius: 4px;
+}
+.stack-row__track:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.stack {
+  display: flex;
+  height: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.stack__seg { height: 100%; }
+.stack__seg--cost { background: var(--stack-cost); }
+.stack__seg--gain { background: var(--accent); }
+.stack__seg--unknown {
+  background: repeating-linear-gradient(45deg, #e2d8c4, #e2d8c4 6px, #f1e9da 6px, #f1e9da 12px);
+}
+
+.stack__tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--text);
+  color: #fff;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  padding: 6px 9px;
+  border-radius: 6px;
+  max-width: 260px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.stack-row__track:hover .stack__tip,
+.stack-row__track:focus .stack__tip { opacity: 1; visibility: visible; }

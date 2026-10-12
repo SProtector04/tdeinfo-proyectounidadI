@@ -113,33 +113,68 @@ function renderSeries(data) {
     </div>`;
 }
 
+function topTooltip(p) {
+  const lines = [
+    `<strong>${escapeHtml(p.name)}</strong>`,
+    `<span>${p.quantity} vendidos</span>`,
+    `<span>Venta bruta: ${escapeHtml(formatMoney(p.revenueCents))}</span>`,
+  ];
+  if (p.hasCost) {
+    lines.push(`<span>Costo de ventas: ${escapeHtml(formatMoney(p.costCents))}</span>`);
+    lines.push(`<span>Ganancia bruta: ${escapeHtml(formatMoney(p.marginCents))}</span>`);
+    lines.push(`<span>Margen: ${p.marginPercent}%</span>`);
+  } else {
+    lines.push('<span>Sin costo registrado</span>');
+  }
+  return `<div class="stack__tip">${lines.join('')}</div>`;
+}
+
 function renderTop(data) {
-  if (!data.topProducts.length) {
+  const items = data.topProducts;
+  if (!items.length) {
     topEl.innerHTML = emptyState('Sin datos en este periodo.', 'menu');
     return;
   }
-  // Mini-tarjetas compactas para escaneo rapido (no tablas): conservan
-  // cantidad, ingreso y margen sin sacrificar legibilidad.
-  topEl.innerHTML = `<div class="top-grid">${data.topProducts
-    .map(
-      (p, idx) => `
-      <article class="top-card">
-        <span class="top-card__rank">${idx + 1}</span>
-        <div class="top-card__body">
-          <h3 class="top-card__name">${escapeHtml(p.name)}</h3>
-          <p class="top-card__meta">
-            <span>${p.quantity} vendidos</span>
-            <span class="top-card__rev">${formatMoney(p.revenueCents)}</span>
-          </p>
-          <p class="top-card__margin">${
-            p.hasCost
-              ? `Margen ${formatMoney(p.marginCents)} <span class="muted">(${p.marginPercent}%)</span>`
-              : '<span class="muted">Margen sin costo</span>'
-          }</p>
-        </div>
-      </article>`,
-    )
-    .join('')}</div>`;
+
+  // Escala compartida: la barra mas larga es el mayor ingreso del top.
+  // La longitud de cada barra = venta bruta; dentro se reparte costo +
+  // ganancia bruta (que suman la venta bruta, sin duplicarla).
+  const maxRev = Math.max(1, ...items.map((p) => p.revenueCents));
+  const legend = `
+    <div class="stack-legend">
+      <span class="stack-legend__item"><i class="swatch swatch--cost"></i>Costo de ventas</span>
+      <span class="stack-legend__item"><i class="swatch swatch--gain"></i>Ganancia bruta</span>
+    </div>`;
+
+  const rows = items
+    .map((p) => {
+      const widthPct = (p.revenueCents / maxRev) * 100;
+      let segments;
+      if (p.hasCost && p.revenueCents > 0) {
+        // Porcentajes del total de la barra; no se recalcula el margen, viene
+        // del backend. Ganancia 0 deja el segmento en 0 (sin minimo falso).
+        const costPct = (p.costCents / p.revenueCents) * 100;
+        const gainPct = (p.marginCents / p.revenueCents) * 100;
+        segments =
+          `<span class="stack__seg stack__seg--cost" style="width:${costPct.toFixed(2)}%"></span>` +
+          `<span class="stack__seg stack__seg--gain" style="width:${gainPct.toFixed(2)}%"></span>`;
+      } else if (p.hasCost) {
+        segments = '<span class="stack__seg stack__seg--cost" style="width:100%"></span>';
+      } else {
+        segments = '<span class="stack__seg stack__seg--unknown" style="width:100%"></span>';
+      }
+      return `
+        <div class="stack-row">
+          <span class="stack-row__label">${escapeHtml(p.name)}</span>
+          <div class="stack-row__track" tabindex="0">
+            <div class="stack" style="width:${widthPct.toFixed(2)}%">${segments}</div>
+            ${topTooltip(p)}
+          </div>
+        </div>`;
+    })
+    .join('');
+
+  topEl.innerHTML = `${legend}<div class="stack-chart">${rows}</div>`;
 }
 
 function renderInventory(data) {
