@@ -139,3 +139,20 @@ test('validacion: payloads malformados responden 400', async (t) => {
   });
   assert.equal(badProduct.status, 400);
 });
+
+test('indisponibilidad: con la BD caida el arranque falla explicitamente', async (t) => {
+  if (!dbAvailable) return t.skip('PostgreSQL no disponible');
+
+  // `buildApp` no deja un servidor semi-funcional con el pool roto: si la BD
+  // no responde, el arranque rechaza. En Docker esto se traduce en que el
+  // contenedor `app` espera a que el healthcheck de `db` lo marque sano
+  // (depends_on: service_healthy) antes de levantar.
+  const badUrl = 'postgresql://cdq:cdq@127.0.0.1:59999/cdq';
+  await assert.rejects(
+    () => buildApp(loadConfig({ ...process.env, DATABASE_URL: badUrl })),
+    (err) => {
+      assert.equal(err.code, 'ECONNREFUSED');
+      return true;
+    },
+  );
+});
