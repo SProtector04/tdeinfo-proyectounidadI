@@ -42,10 +42,12 @@ export async function buildApp(config) {
   const tokenService = new CryptoTokenService();
   await seedDatabase(db, { passwordService, config });
 
+  const authRepository = new PostgresAuthRepository(db);
+  await authRepository.deleteExpiredSessions();
+
   const catalogRepository = new PostgresCatalogRepository(db);
   const salesRepository = new PostgresSalesRepository(db);
   const inventoryRepository = new PostgresInventoryRepository(db);
-  const authRepository = new PostgresAuthRepository(db);
 
   const stockService = new StockService();
   const recommendationService = new RecommendationService();
