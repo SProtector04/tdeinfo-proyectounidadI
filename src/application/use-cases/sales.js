@@ -6,6 +6,7 @@ import {
 } from '../../domain/errors.js';
 import { SaleItem, SALE_STATUS } from '../../domain/entities/sale.js';
 import { Ingredient } from '../../domain/entities/ingredient.js';
+import { Money } from '../../domain/value-objects/money.js';
 import { round3 } from '../../domain/units.js';
 
 /**
@@ -139,7 +140,7 @@ export class RegisterSale {
         action: 'SALE',
         entity: 'sale',
         entityId: saleId,
-        result: `Venta registrada por ${(totalCents / 100).toFixed(2)} cordobas`,
+        result: `Venta registrada por ${new Money(totalCents).format()}`,
       });
     });
 
@@ -155,7 +156,7 @@ export class ListSales {
     this.salesRepository = salesRepository;
   }
 
-  async execute({ limit = 50 } = {}) {
-    return this.salesRepository.list({ limit });
+  async execute({ limit = 50, offset = 0 } = {}) {
+    return this.salesRepository.list({ limit, offset });
   }
 }

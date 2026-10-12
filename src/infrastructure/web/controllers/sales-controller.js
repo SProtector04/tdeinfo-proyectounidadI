@@ -1,8 +1,10 @@
+import { validateSaleBody, parsePagination } from '../validation.js';
+
 export function salesController({ registerSale, listSales }) {
   return {
     async register(req, res, next) {
       try {
-        const { customerName, items } = req.body ?? {};
+        const { customerName, items } = validateSaleBody(req.body);
         const result = await registerSale.execute({
           userId: req.user.id,
           customerName,
@@ -16,8 +18,8 @@ export function salesController({ registerSale, listSales }) {
 
     async list(req, res, next) {
       try {
-        const limit = Number(req.query.limit ?? 50);
-        const result = await listSales.execute({ limit });
+        const { limit, offset } = parsePagination(req.query);
+        const result = await listSales.execute({ limit, offset });
         res.json(result);
       } catch (err) {
         next(err);

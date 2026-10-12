@@ -4,13 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Alertas - Centro del Quesillo</title>
+  <link rel="stylesheet" href="/css/icons.css" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
   <div id="nav"></div>
   <main>
     <h1>Alertas y recomendaciones</h1>
-    <div class="card" id="alerts"></div>
+
+    <!-- Resumen por severidad (rapido de escanear) -->
+    <div class="grid cols-3" id="alert-summary"></div>
+
+    <div class="filters" id="alert-filters">
+      <button type="button" data-status="" class="active">Todas</button>
+      <button type="button" data-status="OPEN">Abiertas</button>
+      <button type="button" data-status="RESOLVED">Resueltas</button>
+    </div>
+    <div class="alert-list" id="alerts"></div>
+    <div class="pager" id="alerts-pager"></div>
   </main>
   <script type="module" src="/js/alertas.js"></script>
 </body>

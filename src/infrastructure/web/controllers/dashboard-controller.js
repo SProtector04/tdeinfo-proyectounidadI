@@ -1,8 +1,11 @@
+import { parsePeriod } from '../validation.js';
+
 export function dashboardController({ getDashboard }) {
   return {
-    async get(_req, res, next) {
+    async get(req, res, next) {
       try {
-        const result = await getDashboard.execute();
+        const days = parsePeriod(req.query);
+        const result = await getDashboard.execute({ days });
         res.json(result);
       } catch (err) {
         next(err);

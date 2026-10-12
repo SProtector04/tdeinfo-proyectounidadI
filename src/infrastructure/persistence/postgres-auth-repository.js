@@ -70,4 +70,9 @@ export class PostgresAuthRepository extends AuthRepository {
   async deleteSession(tokenHash) {
     await this.db.query('DELETE FROM sessions WHERE token_hash = $1', [tokenHash]);
   }
+
+  /** Elimina sesiones vencidas (evita que se acumulen entre ejecuciones). */
+  async deleteExpiredSessions() {
+    await this.db.query('DELETE FROM sessions WHERE expires_at <= NOW()');
+  }
 }

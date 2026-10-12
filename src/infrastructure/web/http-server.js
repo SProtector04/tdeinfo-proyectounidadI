@@ -18,6 +18,18 @@ export function createHttpServer({ authRepository, tokenService, controllers }) 
   app.disable('x-powered-by');
   app.use(express.json());
 
+  // Headers de seguridad (el frontend no usa scripts ni estilos inline)
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'same-origin');
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    );
+    next();
+  });
+
   const authenticate = authenticateFactory({ authRepository, tokenService });
   const authorizeAdmin = authorizeFactory(ROLES.ADMIN);
   const authorizeStaff = authorizeFactory(ROLES.ADMIN, ROLES.CAJERO);
@@ -47,6 +59,7 @@ export function createHttpServer({ authRepository, tokenService, controllers }) 
   api.post('/inventory/adjust', authorizeAdmin, controllers.inventory.adjustStock);
   api.get('/inventory/movements', authorizeAdmin, controllers.inventory.listMovements);
   api.get('/alerts', authorizeStaff, controllers.inventory.listAlerts);
+  api.get('/alerts/summary', authorizeStaff, controllers.inventory.alertSummary);
   api.post('/alerts/:id/resolve', authorizeAdmin, controllers.inventory.resolveAlert);
   api.get('/audit', authorizeAdmin, controllers.inventory.listAudit);
 

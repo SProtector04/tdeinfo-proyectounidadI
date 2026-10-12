@@ -1,8 +1,11 @@
+import { parsePagination } from '../validation.js';
+
 export function inventoryController({
   addStock,
   adjustStock,
   listMovements,
   listAlerts,
+  alertSummary,
   resolveAlert,
   listAudit,
 }) {
@@ -29,7 +32,8 @@ export function inventoryController({
 
     async listMovements(req, res, next) {
       try {
-        const result = await listMovements.execute({ limit: Number(req.query.limit ?? 100) });
+        const { limit, offset } = parsePagination(req.query, { defaultLimit: 50 });
+        const result = await listMovements.execute({ limit, offset });
         res.json(result);
       } catch (err) {
         next(err);
@@ -38,7 +42,17 @@ export function inventoryController({
 
     async listAlerts(req, res, next) {
       try {
-        const result = await listAlerts.execute({ status: req.query.status ?? null });
+        const { limit, offset } = parsePagination(req.query, { defaultLimit: 15 });
+        const result = await listAlerts.execute({ status: req.query.status ?? null, limit, offset });
+        res.json(result);
+      } catch (err) {
+        next(err);
+      }
+    },
+
+    async alertSummary(_req, res, next) {
+      try {
+        const result = await alertSummary.execute();
         res.json(result);
       } catch (err) {
         next(err);
@@ -56,7 +70,8 @@ export function inventoryController({
 
     async listAudit(req, res, next) {
       try {
-        const result = await listAudit.execute({ limit: Number(req.query.limit ?? 100) });
+        const { limit, offset } = parsePagination(req.query, { defaultLimit: 100 });
+        const result = await listAudit.execute({ limit, offset });
         res.json(result);
       } catch (err) {
         next(err);

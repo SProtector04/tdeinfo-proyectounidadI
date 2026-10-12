@@ -1,5 +1,7 @@
 import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
+import { toast, withSubmitting, escapeHtml, placeholder, initViewSwitcher, emptyState, icon } from './ui.js';
+import { renderTable } from './components/table.js';
 
 const user = await getCurrentUser();
 if (user.role !== 'ADMIN') {
@@ -8,37 +10,68 @@ if (user.role !== 'ADMIN') {
 }
 await renderNav('/usuarios.html');
 
-const users = await api('/users');
-document.getElementById('users').innerHTML = `
-  <table>
-    <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Activo</th></tr>
-    ${users
-      .map(
-        (u) => `<tr>
-          <td>${u.name}</td>
-          <td>${u.username}</td>
-          <td><span class="badge ${u.role.toLowerCase()}">${u.role}</span></td>
-          <td>${u.active ? 'Si' : 'No'}</td>
-        </tr>`,
-      )
-      .join('')}
-  </table>`;
+// --- Vista: Lista ---
+const usersEl = document.getElementById('users');
 
-document.getElementById('user-form').addEventListener('submit', async (e) => {
+async function renderUsers() {
+  placeholder(usersEl, 'Cargando usuarios');
+  const users = await api('/users');
+  usersEl.innerHTML = renderTable({
+    columns: [
+      { label: 'Nombre', render: (u) => escapeHtml(u.name) },
+      { label: 'Usuario', render: (u) => escapeHtml(u.username) },
+      {
+        label: 'Rol',
+        render: (u) => `<span class="badge icon-badge ${u.role.toLowerCase()}">${icon('users')}<span>${u.role}</span></span>`,
+      },
+      { label: 'Activo', render: (u) => (u.active ? 'Sí' : 'No') },
+    ],
+    rows: users,
+    emptyHtml: emptyState('Sin usuarios.', 'users'),
+  });
+}
+
+// --- Vista: Nuevo usuario ---
+const form = document.getElementById('user-form');
+// Iconos de los botones del formulario (el HTML no lleva SVG).
+form.querySelector('button[data-goto]').insertAdjacentHTML('afterbegin', icon('chevronLeft'));
+form.querySelector('button[type="submit"]').insertAdjacentHTML('afterbegin', icon('plus'));
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   setError(document.getElementById('error'), '');
+  const username = document.getElementById('u-username').value.trim();
   try {
-    await api('/users', {
-      method: 'POST',
-      body: {
-        name: document.getElementById('u-name').value.trim(),
-        username: document.getElementById('u-username').value.trim(),
-        password: document.getElementById('u-password').value,
-        role: document.getElementById('u-role').value,
-      },
+    await withSubmitting(form, async () => {
+      await api('/users', {
+        method: 'POST',
+        body: {
+          name: document.getElementById('u-name').value.trim(),
+          username,
+          password: document.getElementById('u-password').value,
+          role: document.getElementById('u-role').value,
+        },
+      });
+      form.reset();
+      toast(`Usuario "${username}" creado.`);
+      await renderUsers();
+      switcher.go('lista');
     });
-    window.location.reload();
   } catch (err) {
     setError(document.getElementById('error'), err.message);
   }
+});
+
+document.querySelectorAll('button[data-goto]').forEach((b) =>
+  b.addEventListener('click', () => switcher.go(b.dataset.goto)),
+);
+
+// --- Selector de vistas ---
+const switcher = initViewSwitcher({
+  defaultView: 'lista',
+  onEnter: {
+    lista: renderUsers,
+    nuevo: () => {},
+  },
+  viewIcon: { lista: 'users', nuevo: 'plus' },
 });

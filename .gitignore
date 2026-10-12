@@ -1,9 +1,6 @@
 # Dependencias
 node_modules/
 
-# Pruebas (locales, no versionadas)
-test/
-
 # Datos variables locales (nunca versionar; en produccion viven en el volumen Docker)
 data/
 *.db

@@ -23,12 +23,12 @@ export class PostgresSalesRepository extends SalesRepository {
     }
   }
 
-  async list({ limit = 50 } = {}) {
+  async list({ limit = 50, offset = 0 } = {}) {
     const sales = await this.db.query(
       `SELECT s.*, u.name AS user_name
        FROM sales s JOIN users u ON u.id = s.user_id
-       ORDER BY s.id DESC LIMIT $1`,
-      [limit],
+       ORDER BY s.id DESC LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
 
     const ids = sales.map((s) => s.id);
@@ -73,18 +73,46 @@ export class PostgresSalesRepository extends SalesRepository {
     return { count: rows[0].count, revenueCents: rows[0].revenue };
   }
 
+  /**
+   * Resumen (ventas e ingresos) de una ventana de `days` dias calendario que
+   * termina `daysAgo` dias antes de hoy (inclusive). `daysAgo = 0` es la
+   * ventana actual; `daysAgo = days` es la inmediatamente anterior de igual
+   * longitud. Asi ambas comparativas usan ventanas equivalentes y explicitas.
+   */
+  async summaryWindow({ days, daysAgo = 0 }) {
+    const rows = await this.db.query(
+      `SELECT COUNT(*)::int AS count, COALESCE(SUM(total_cents), 0)::int AS revenue
+       FROM sales
+       WHERE status = 'COMPLETED'
+         AND created_at::date BETWEEN CURRENT_DATE - (($1::int + $2::int - 1) * INTERVAL '1 day')
+                                  AND CURRENT_DATE - ($2::int * INTERVAL '1 day')`,
+      [days, daysAgo],
+    );
+    return { count: rows[0].count, revenueCents: rows[0].revenue };
+  }
+
+  /** Serie diaria completa de la ventana actual (dias sin ventas = 0). */
   async dailyRevenue(days) {
     return this.db.query(
-      `SELECT to_char(created_at, 'YYYY-MM-DD') AS date, SUM(total_cents)::int AS "totalCents"
-       FROM sales
-       WHERE status = 'COMPLETED' AND created_at::date >= CURRENT_DATE - ($1 * INTERVAL '1 day')
-       GROUP BY to_char(created_at, 'YYYY-MM-DD')
-       ORDER BY to_char(created_at, 'YYYY-MM-DD')`,
+      `WITH serie AS (
+         SELECT generate_series(CURRENT_DATE - (($1::int - 1) * INTERVAL '1 day'), CURRENT_DATE, '1 day')::date AS day
+       )
+       SELECT to_char(serie.day, 'YYYY-MM-DD') AS date,
+              COALESCE(SUM(s.total_cents), 0)::int AS "totalCents"
+       FROM serie
+       LEFT JOIN sales s ON s.created_at::date = serie.day AND s.status = 'COMPLETED'
+       GROUP BY serie.day
+       ORDER BY serie.day`,
       [days],
     );
   }
 
-  async topProducts(days) {
+  /**
+   * Top productos de la ventana actual (ventana exacta de `days` dias
+   * terminando hoy). El costo/margen NO se calcula aqui: lo resuelve el caso
+   * de uso en el dominio (AnalyticsService), que tiene las recetas y costos.
+   */
+  async topProducts({ days }) {
     return this.db.query(
       `SELECT p.id AS "productId", p.name AS name,
               SUM(si.quantity) AS quantity,
@@ -92,7 +120,8 @@ export class PostgresSalesRepository extends SalesRepository {
        FROM sale_items si
        JOIN products p ON p.id = si.product_id
        JOIN sales s ON s.id = si.sale_id
-       WHERE s.status = 'COMPLETED' AND s.created_at::date >= CURRENT_DATE - ($1 * INTERVAL '1 day')
+       WHERE s.status = 'COMPLETED'
+         AND s.created_at::date BETWEEN CURRENT_DATE - (($1::int - 1) * INTERVAL '1 day') AND CURRENT_DATE
        GROUP BY p.id
        ORDER BY quantity DESC
        LIMIT 5`,

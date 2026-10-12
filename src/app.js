@@ -18,7 +18,7 @@ import { Login, Logout } from './application/use-cases/auth.js';
 import { RegisterSale, ListSales } from './application/use-cases/sales.js';
 import { GetDashboard } from './application/use-cases/dashboard.js';
 import { ListProducts, CreateProduct, ListIngredients, CreateIngredient } from './application/use-cases/catalog.js';
-import { AddStock, AdjustStock, ListMovements, ListAlerts, ResolveAlert, ListAudit } from './application/use-cases/inventory.js';
+import { AddStock, AdjustStock, ListMovements, ListAlerts, GetAlertSummary, ResolveAlert, ListAudit } from './application/use-cases/inventory.js';
 import { ListUsers, CreateUser } from './application/use-cases/users.js';
 
 import { createHttpServer } from './infrastructure/web/http-server.js';
@@ -42,10 +42,12 @@ export async function buildApp(config) {
   const tokenService = new CryptoTokenService();
   await seedDatabase(db, { passwordService, config });
 
+  const authRepository = new PostgresAuthRepository(db);
+  await authRepository.deleteExpiredSessions();
+
   const catalogRepository = new PostgresCatalogRepository(db);
   const salesRepository = new PostgresSalesRepository(db);
   const inventoryRepository = new PostgresInventoryRepository(db);
-  const authRepository = new PostgresAuthRepository(db);
 
   const stockService = new StockService();
   const recommendationService = new RecommendationService();
@@ -82,6 +84,7 @@ export async function buildApp(config) {
   const adjustStock = new AdjustStock({ catalogRepository, inventoryRepository, transaction });
   const listMovements = new ListMovements({ inventoryRepository });
   const listAlerts = new ListAlerts({ inventoryRepository });
+  const alertSummary = new GetAlertSummary({ inventoryRepository });
   const resolveAlert = new ResolveAlert({ inventoryRepository, transaction });
   const listAudit = new ListAudit({ inventoryRepository });
 
@@ -92,7 +95,7 @@ export async function buildApp(config) {
     auth: authController({ login, logout }),
     sales: salesController({ registerSale, listSales }),
     catalog: catalogController({ listProducts, createProduct, listIngredients, createIngredient }),
-    inventory: inventoryController({ addStock, adjustStock, listMovements, listAlerts, resolveAlert, listAudit }),
+    inventory: inventoryController({ addStock, adjustStock, listMovements, listAlerts, alertSummary, resolveAlert, listAudit }),
     dashboard: dashboardController({ getDashboard }),
     users: usersController({ listUsers, createUser }),
   };

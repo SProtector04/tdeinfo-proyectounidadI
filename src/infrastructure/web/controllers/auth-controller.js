@@ -1,8 +1,10 @@
+import { validateLoginBody } from '../validation.js';
+
 export function authController({ login, logout }) {
   return {
     async login(req, res, next) {
       try {
-        const { username, password } = req.body ?? {};
+        const { username, password } = validateLoginBody(req.body);
         const result = await login.execute({ username, password });
         res.json(result);
       } catch (err) {

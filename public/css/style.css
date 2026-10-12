@@ -43,6 +43,9 @@ header.top .brand {
 header.top nav { display: flex; gap: 4px; flex: 1; }
 
 header.top nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   border-radius: 6px;
   color: var(--text);
@@ -123,14 +126,348 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
 .row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
 .row > div { flex: 1; min-width: 140px; }
 
+/* Utilidades de espaciado (sustituyen estilos inline) */
+.mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.form-hint { margin-top: 16px; font-size: 0.8rem; }
+.btn-block { width: 100%; }
+.hidden { display: none; }
+
 .auth-wrap { max-width: 360px; margin: 80px auto; }
 
-.bars { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
-.bars .bar {
-  flex: 1;
-  background: var(--primary);
-  border-radius: 4px 4px 0 0;
-  min-height: 4px;
-  position: relative;
+/* Graficos (Chart.js): contenedor con altura fija; el canvas lo dibuja la libreria */
+.chart-canvas { position: relative; height: 190px; }
+.chart-canvas--top { height: 210px; }
+
+/* Toasts de confirmacion / error */
+#toast-root {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  max-width: min(360px, calc(100vw - 32px));
 }
-.bars .bar span { position: absolute; bottom: -18px; font-size: 0.7rem; color: var(--muted); width: 100%; text-align: center; }
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.12);
+  animation: toast-in 0.2s ease-out;
+  border: 1px solid transparent;
+}
+.toast .icon { flex: none; }
+.toast.success { background: #dcfce7; color: var(--accent); border-color: #bbf7d0; }
+.toast.error { background: #fee2e2; color: var(--danger); border-color: #fecaca; }
+.toast.info { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Indicador de carga */
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -2px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Catalogo de productos: busqueda, secciones por categoria y tarjetas */
+.catalog-toolbar { margin-bottom: 16px; }
+.catalog-search {
+  width: 100%;
+  max-width: 420px;
+  padding: 9px 12px 9px 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a7a6a' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M20 20l-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px 16px;
+}
+.catalog-search:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+
+.cat-group { margin-bottom: 22px; }
+.cat-group__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+.cat-group__count {
+  background: var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.product-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* La imagen topa la tarjeta; el contenido lleva su propio padding. */
+.product-card__img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  background: #fdf6ec;
+  border-bottom: 1px solid var(--border);
+}
+.product-card__body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.product-card--short { border-color: #fca5a5; background: #fff7f7; }
+.product-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.product-card__cat {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+.product-card__price { font-size: 1.15rem; color: var(--primary-dark); white-space: nowrap; }
+.product-card__name {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.product-card__no-recipe { margin: 0; font-size: 0.8rem; }
+
+/* Receta colapsable: el detalle de insumos no queda siempre visible */
+.product-card__recipe { font-size: 0.8rem; color: var(--muted); }
+.product-card__recipe summary {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-dark);
+  font-weight: 500;
+  list-style: none;
+}
+.product-card__recipe summary::-webkit-details-marker { display: none; }
+.product-card__recipe summary .icon { transition: transform 0.15s ease; }
+.product-card__recipe[open] summary .icon { transform: rotate(90deg); }
+.product-card__recipe ul { margin: 8px 0 0; padding-left: 18px; }
+.product-card__recipe li { line-height: 1.6; }
+
+.product-card__alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .product-grid { grid-template-columns: 1fr 1fr; }
+  .catalog-search { max-width: none; }
+}
+
+/* Alertas: jerarquia por icono + badge (sin bordes de color) y resueltas atenuadas */
+.alert-list { display: flex; flex-direction: column; gap: 10px; }
+.alert-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.alert-row--resolved { opacity: 0.7; }
+
+.alert-row__icon { flex: none; color: var(--muted); }
+.alert-row__icon .icon { width: 20px; height: 20px; display: block; }
+.alert-row--critical .alert-row__icon { color: var(--danger); }
+.alert-row--warning .alert-row__icon { color: var(--warn); }
+.alert-row--resolved .alert-row__icon { color: var(--accent); }
+
+.alert-row__body { flex: 1; min-width: 0; }
+.alert-row__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.alert-row__title { font-weight: 600; }
+.alert-row__detail { margin: 4px 0 0; font-size: 0.9rem; color: var(--text); }
+.alert-row__meta { display: block; margin-top: 6px; font-size: 0.78rem; color: var(--muted); }
+.alert-row__action { flex: none; align-self: center; }
+
+/* Resumen de alertas: tarjetas planas (sin bordes de color) */
+#alert-summary .stat--critical .value { color: var(--danger); }
+#alert-summary .stat--warning .value { color: var(--warn); }
+
+@media (max-width: 720px) {
+  .alert-row { flex-wrap: wrap; }
+  .alert-row__action { width: 100%; }
+}
+
+/* Pantalla de mostrador (ventas) */
+.qty-cell { display: flex; align-items: center; gap: 6px; }
+.qty-cell input { max-width: 72px; text-align: center; }
+.qty-btn {
+  background: var(--surface);
+  color: var(--primary-dark);
+  border: 1px solid var(--primary);
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+.sale-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.sale-total { font-size: 1.25rem; }
+.sale-total strong { color: var(--primary-dark); }
+.sale-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Boton de cobro/ticket: protagonista para el flujo del mostrador */
+.btn-charge {
+  background: var(--accent);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 12px 22px;
+}
+.btn-charge:hover { background: #14532d; }
+
+.ticket h2 { margin-top: 0; }
+.ticket {
+  border: 1px solid var(--accent);
+  max-width: 360px;
+}
+.ticket-total { font-size: 1.1rem; text-align: right; }
+#ticket-body { font-size: 0.9rem; }
+.ticket .btn-charge { margin-top: 14px; }
+
+@media print {
+  body * { visibility: hidden; }
+  #ticket, #ticket * { visibility: visible; }
+  #ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none;
+  }
+  #print-ticket { display: none; }
+}
+
+/* Paginacion y filtros */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: -6px 0 16px;
+}
+.filters { display: flex; gap: 6px; margin-bottom: 12px; }
+.filters button.active { background: var(--primary); color: #fff; }
+
+/* Responsive: tablas con scroll horizontal en pantallas chicas */
+.card { overflow-x: auto; }
+@media (max-width: 720px) {
+  main { margin: 16px auto; padding: 0 12px; }
+  header.top { padding: 10px 12px; gap: 10px; }
+  h1 { font-size: 1.2rem; }
+  .sale-footer { flex-direction: column; align-items: stretch; }
+  .sale-actions { justify-content: stretch; }
+  .sale-actions button { flex: 1; }
+  .qty-cell input { max-width: 56px; }
+}
+
+/* Tablero: selector de periodo y variacion vs periodo anterior */
+.period-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.period-bar button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.period-bar button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.stat .delta { margin-top: 4px; font-size: 0.78rem; }
+.change.up { color: var(--accent); }
+.change.down { color: var(--danger); }
+.change.flat { color: var(--muted); }
+
+/* Tabs de vistas (arquitectura de informacion: una vista enfocada por vez) */
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.view-tabs button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.view-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Cabecera de vista con accion principal a la derecha */
+.view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.view-head h2 { margin: 0; }
+
+/* Las series de productos mas vendidos las dibuja Chart.js (ver dashboard.js) */

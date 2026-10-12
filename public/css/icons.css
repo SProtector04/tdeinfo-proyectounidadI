@@ -1,0 +1,75 @@
+/*
+ * Iconografia de linea (SVG con currentColor, inyectados por icon() en ui.js).
+ * Reglas de tamano, alineacion y estados. El color siempre hereda del texto.
+ */
+
+.icon {
+  width: 1em;
+  height: 1em;
+  flex: none;               /* no se encoge dentro de flex */
+  display: inline-block;
+  vertical-align: -0.125em; /* alinea con el texto de la linea base */
+  stroke-width: 1.75;
+}
+
+/* Los iconos dentro de botones/filtros se alinean con el texto */
+button .icon,
+.view-tabs button .icon,
+.period-bar button .icon,
+.filters button .icon {
+  vertical-align: -0.15em;
+  margin-right: 0.35em;
+}
+
+/* Icono que va a la derecha del texto (sin margen izquierdo) */
+.icon-after { margin-left: 0.35em; margin-right: 0; }
+
+/* Iconos en estados vacios y de carga */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 12px;
+  color: var(--muted);
+  text-align: center;
+}
+.empty-state .icon { width: 30px; height: 30px; stroke-width: 1.5; opacity: 0.75; }
+.empty-state p { margin: 0; font-size: 0.9rem; }
+
+/* Badge con icono de severidad */
+.badge.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+}
+.badge.icon-badge .icon { width: 0.85em; height: 0.85em; }
+
+/*
+ * Estados de foco: visibles y consistentes en todo control interactivo.
+ * :focus-visible evita el anillo al hacer clic con raton, pero lo muestra
+ * al navegar con teclado.
+ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Foco sobre superficies con borde propio (tarjetas, botones ghost) */
+button.ghost:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* Los controles deshabilitados no muestran anillo de foco */
+button:disabled:focus-visible,
+input:disabled:focus-visible,
+select:disabled:focus-visible {
+  outline: none;
+}

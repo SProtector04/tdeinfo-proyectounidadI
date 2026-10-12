@@ -4,33 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ventas - Centro del Quesillo</title>
+  <link rel="stylesheet" href="/css/icons.css" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
   <div id="nav"></div>
   <main>
-    <h1>Registrar venta</h1>
-    <div class="card">
-      <form id="sale-form">
-        <div class="row">
-          <div>
-            <label for="customer">Cliente (opcional)</label>
-            <input id="customer" name="customerName" placeholder="Nombre del cliente" />
-          </div>
-          <div>
-            <button type="submit" style="margin-top: 22px">Registrar venta</button>
-          </div>
-        </div>
-        <p id="error" class="error"></p>
-        <table style="margin-top: 12px">
-          <thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </form>
+    <div class="view-tabs" id="view-tabs">
+      <button type="button" data-view-link="cobrar">Cobrar</button>
+      <button type="button" data-view-link="historial">Historial</button>
     </div>
 
-    <h2>Ventas recientes</h2>
-    <div class="card" id="sales"></div>
+    <!-- Vista 1: mostrador / cobro (por defecto) -->
+    <section data-view="cobrar">
+      <h1>Cobrar</h1>
+      <div class="card">
+        <form id="sale-form">
+          <div class="row">
+            <div>
+              <label for="customer">Cliente (opcional)</label>
+              <input id="customer" name="customerName" placeholder="Nombre del cliente" />
+            </div>
+          </div>
+          <p id="error" class="error"></p>
+          <table class="mt-12">
+            <thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="sale-footer">
+            <div class="sale-total">Total: <strong id="sale-total">C$ 0.00</strong></div>
+            <div class="sale-actions">
+              <button type="button" id="repeat-last" class="ghost" hidden>Repetir última venta</button>
+              <button type="submit" class="btn-charge">Registrar venta</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="ticket" class="card ticket" hidden>
+        <h2>Ticket de venta</h2>
+        <div id="ticket-body"></div>
+        <button type="button" id="print-ticket" class="btn-charge">Imprimir ticket</button>
+      </div>
+    </section>
+
+    <!-- Vista 2: historial paginado -->
+    <section data-view="historial" class="hidden">
+      <h1>Historial de ventas</h1>
+      <div class="card" id="sales"></div>
+      <div class="pager" id="sales-pager"></div>
+    </section>
   </main>
   <script type="module" src="/js/ventas.js"></script>
 </body>
