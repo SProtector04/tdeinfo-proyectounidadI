@@ -4,7 +4,7 @@ Aplicacion web para la transformacion digital del proceso de venta y control
 de inventario de un negocio real de quesillos.
 
 La aplicacion captura datos (ventas, insumos, movimientos), los almacena en
-SQLite, los procesa con reglas de negocio y presenta informacion util para que
+PostgreSQL, los procesa con reglas de negocio y presenta informacion util para que
 los propietarios del establecimiento reciban alertas de stock bajo y recomendaciones de
 produccion con limites claramente definidos.
 
@@ -51,6 +51,18 @@ npm install
 DATABASE_URL=postgresql://cdq:cdq@localhost:5432/cdq npm start
 ```
 
+### Pruebas
+
+```bash
+npm test          # pruebas unitarias de dominio y casos de uso (sin infraestructura)
+npm run test:int  # integracion contra PostgreSQL (requiere el `db` del compose corriendo;
+                  # se omiten automaticamente si la base no esta disponible)
+```
+
+La suite de integracion cubre el recorrido funcional (login, venta, tablero,
+autorizacion), la validacion de entradas y el rollback de transacciones contra
+PostgreSQL real.
+
 ### Datos de prueba
 
 Al primer arranque se siembran (idempotente):
@@ -71,8 +83,19 @@ centrodelquesillo/
 │   ├── config/            # Configuracion desde variables de entorno
 │   ├── app.js             # Raiz de composicion (inversion de dependencias)
 │   └── index.js           # Punto de entrada
-├── public/                # Frontend estatico (HTML/CSS/JS)
-├── test/                  # Pruebas unitarias e integracion
+├── public/                # Frontend estatico multi-pagina (sin framework)
+│   ├── js/
+│   │   ├── ui.js          # Toasts, escape HTML, fechas, carga, paginacion
+│   │   ├── api.js         # Cliente fetch + formatMoney
+│   │   ├── common.js      # Nav, sesion, errores de formulario
+│   │   └── components/    # Componentes reutilizables (tabla)
+│   ├── css/               # Estilos (incluye reglas de impresion del ticket)
+│   └── *.html             # Una pagina por pantalla
+├── test/
+│   ├── domain/            # Reglas de negocio puras
+│   ├── application/       # Casos de uso con repositorios fake en memoria
+│   ├── integration/       # API y transacciones contra PostgreSQL real
+│   └── helpers/           # Dobles de prueba
 ├── docs/                  # Arquitectura, modelo de datos, justificacion, pruebas
 ├── Dockerfile
 └── docker-compose.yml
