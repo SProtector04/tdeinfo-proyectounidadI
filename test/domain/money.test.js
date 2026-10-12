@@ -22,6 +22,12 @@ test('Money: formato cordobas', () => {
   assert.equal(Money.fromCents(5).format(), 'C$ 0.05');
 });
 
+test('Money: separador de miles con coma y decimales con punto', () => {
+  assert.equal(Money.fromCents(123456).format(), 'C$ 1,234.56');
+  assert.equal(Money.fromCents(100000000).format(), 'C$ 1,000,000.00');
+  assert.equal(Money.fromCents(-123456).format(), '-C$ 1,234.56');
+});
+
 test('Money: monto invalido lanza ValidationError', () => {
   assert.throws(() => new Money('abc'), ValidationError);
   assert.throws(() => new Money(NaN), ValidationError);

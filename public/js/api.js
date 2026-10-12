@@ -60,5 +60,10 @@ export async function api(path, options = {}) {
 }
 
 export function formatMoney(cents) {
-  return `C$ ${(Number(cents) / 100).toFixed(2)}`;
+  const value = Math.round(Number(cents));
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.abs(value);
+  const whole = String(Math.floor(abs / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const frac = String(abs % 100).padStart(2, '0');
+  return `${sign}C$ ${whole}.${frac}`;
 }

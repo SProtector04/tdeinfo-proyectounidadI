@@ -20,6 +20,7 @@
 import pg from 'pg';
 import { loadConfig } from '../src/config/env.js';
 import { INGREDIENTS as SEED_INGREDIENTS } from '../src/infrastructure/persistence/seed.js';
+import { Money } from '../src/domain/value-objects/money.js';
 
 const round3 = (n) => Math.round(n * 1000) / 1000;
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -235,7 +236,7 @@ async function main() {
 
         await q(
           'INSERT INTO audit_logs (user_id, action, entity, entity_id, result, created_at) VALUES ($1,$2,$3,$4,$5,$6)',
-          [cajero.id, 'SALE', 'sale', saleId, `Venta registrada por ${(totalCents / 100).toFixed(2)} córdobas`, saleTime],
+          [cajero.id, 'SALE', 'sale', saleId, `Venta registrada por ${new Money(totalCents).format()}`, saleTime],
         );
       }
 
