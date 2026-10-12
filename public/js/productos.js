@@ -6,31 +6,96 @@ const user = await getCurrentUser();
 await renderNav('/productos.html');
 
 const productsEl = document.getElementById('products');
+const searchEl = document.getElementById('product-search');
 let ingredients = [];
 let ingredientNames = new Map();
+let ingredientSeverity = new Map();
+let allProducts = [];
+let searchTerm = '';
 let switcher;
+
+/**
+ * Estado de insumo faltante de un producto. Solo lo declara cuando los datos
+ * lo justifican: un insumo de la receta en WARNING/CRITICAL, o un insumo que
+ * la receta referencia pero no esta en el catalogo (dato incompleto). Si no
+ * hay receta o todos los insumos estan OK, no se muestra nada.
+ */
+function shortage(product) {
+  if (!product.recipe?.length) return null;
+  const missing = [];
+  for (const line of product.recipe) {
+    const severity = ingredientSeverity.get(line.ingredientId);
+    if (severity === 'CRITICAL' || severity === 'WARNING' || severity === undefined) {
+      missing.push(ingredientNames.get(line.ingredientId) ?? `#${line.ingredientId}`);
+    }
+  }
+  return missing.length ? missing : null;
+}
+
+/** Tarjeta de producto: nombre, categoria, precio destacado y receta. */
+function productCard(p) {
+  const short = shortage(p);
+  const recipeLine = p.recipe.length
+    ? p.recipe.map((r) => `${escapeHtml(ingredientNames.get(r.ingredientId) ?? '#' + r.ingredientId)} ${r.quantity}`).join(' · ')
+    : 'No consume inventario';
+  return `
+    <article class="product-card${short ? ' product-card--short' : ''}">
+      <div class="product-card__head">
+        <span class="product-card__cat">${escapeHtml(p.category)}</span>
+        <strong class="product-card__price">${escapeHtml(p.formattedPrice)}</strong>
+      </div>
+      <h3 class="product-card__name">${escapeHtml(p.name)}</h3>
+      <p class="product-card__recipe">${recipeLine}</p>
+      ${short ? `<p class="product-card__alert">${icon('warning')}<span>Falta insumo: ${short.map(escapeHtml).join(', ')}</span></p>` : ''}
+    </article>`;
+}
+
+/** Agrupa por categoria y aplica el filtro de busqueda (nombre o categoria). */
+function renderCatalog(products) {
+  const term = searchTerm.trim().toLowerCase();
+  const filtered = term
+    ? products.filter((p) => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term))
+    : products;
+
+  if (!filtered.length) {
+    productsEl.innerHTML = term
+      ? emptyState(`Sin resultados para “${searchTerm.trim()}”.`, 'search')
+      : emptyState('Sin productos en el menú.', 'menu');
+    return;
+  }
+
+  // Secciones por categoria, en orden alfabético; categorias vacias tras el
+  // filtro simplemente no aparecen.
+  const groups = new Map();
+  for (const p of filtered) {
+    if (!groups.has(p.category)) groups.set(p.category, []);
+    groups.get(p.category).push(p);
+  }
+  const sections = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es'));
+
+  productsEl.innerHTML = sections
+    .map(
+      ([category, items]) => `
+      <section class="cat-group">
+        <h2 class="cat-group__title">${escapeHtml(category)} <span class="cat-group__count">${items.length}</span></h2>
+        <div class="product-grid">${items.map(productCard).join('')}</div>
+      </section>`,
+    )
+    .join('');
+}
 
 // --- Vista: Lista ---
 async function renderProducts() {
   placeholder(productsEl, 'Cargando productos');
-  const products = await api('/products');
-  if (!products.length) {
-    productsEl.innerHTML = emptyState('Sin productos en el menú.', 'menu');
-    return;
-  }
-  productsEl.innerHTML = products
-    .map(
-      (p) => `
-      <div class="product-row">
-        <strong>${escapeHtml(p.name)}</strong>
-        <span class="muted">(${escapeHtml(p.category)})</span> - <strong>${escapeHtml(p.formattedPrice)}</strong>
-        <div class="muted recipe-line">
-          ${p.recipe.length ? 'Receta: ' + p.recipe.map((r) => `${escapeHtml(ingredientNames.get(r.ingredientId) ?? '#' + r.ingredientId)} ${r.quantity}`).join(', ') : 'Sin receta (no consume inventario)'}
-        </div>
-      </div>`,
-    )
-    .join('');
+  allProducts = await api('/products');
+  renderCatalog(allProducts);
 }
+
+// Busqueda instantanea, sin llamada al backend (filtra `allProducts`).
+searchEl.addEventListener('input', (e) => {
+  searchTerm = e.target.value;
+  renderCatalog(allProducts);
+});
 
 // --- Vista: Nuevo producto (admin) ---
 if (user.role === 'ADMIN') {
@@ -108,6 +173,7 @@ if (user.role === 'ADMIN') {
 placeholder(productsEl, 'Cargando productos');
 ingredients = await api('/ingredients');
 ingredientNames = new Map(ingredients.map((i) => [i.id, i.name]));
+ingredientSeverity = new Map(ingredients.map((i) => [i.id, i.severity]));
 document.getElementById('r-ingredient').innerHTML = ingredients
   .map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`)
   .join('');

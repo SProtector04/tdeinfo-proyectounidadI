@@ -18,7 +18,10 @@
     <!-- Vista 1: lista de productos -->
     <section data-view="lista">
       <h1>Productos del menú</h1>
-      <div class="card" id="products"></div>
+      <div class="catalog-toolbar">
+        <input id="product-search" type="search" class="catalog-search" placeholder="Buscar por nombre o categoría…" autocomplete="off" />
+      </div>
+      <div id="products"></div>
     </section>
 
     <!-- Vista 2: formulario de alta (solo admin) -->

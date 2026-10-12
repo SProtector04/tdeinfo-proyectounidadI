@@ -194,10 +194,84 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
 
 button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Filas de productos y alertas */
-.product-row { border-bottom: 1px solid var(--border); padding: 8px 0; }
-.product-row:last-child { border-bottom: none; }
-.recipe-line { font-size: 0.82rem; }
+/* Catalogo de productos: busqueda, secciones por categoria y tarjetas */
+.catalog-toolbar { margin-bottom: 16px; }
+.catalog-search {
+  width: 100%;
+  max-width: 420px;
+  padding: 9px 12px 9px 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a7a6a' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M20 20l-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px 16px;
+}
+.catalog-search:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+
+.cat-group { margin-bottom: 22px; }
+.cat-group__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+.cat-group__count {
+  background: var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.product-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.product-card--short { border-color: #fca5a5; background: #fff7f7; }
+.product-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.product-card__cat {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+.product-card__price { font-size: 1.15rem; color: var(--primary-dark); white-space: nowrap; }
+.product-card__name { margin: 0; font-size: 1rem; }
+.product-card__recipe { margin: 0; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+.product-card__alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .product-grid { grid-template-columns: 1fr 1fr; }
+  .catalog-search { max-width: none; }
+}
 
 .alert-row {
   display: flex;
