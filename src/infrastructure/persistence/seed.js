@@ -6,7 +6,7 @@ import { ROLES } from '../../domain/entities/user.js';
  *
  * El sembrado es idempotente: solo inserta cuando la tabla esta vacia.
  */
-const INGREDIENTS = [
+export const INGREDIENTS = [
   { name: 'Queso fresco', unit: 'kg', stock: 10, minStock: 3, costCents: 9000 },
   { name: 'Tortilla', unit: 'unidad', stock: 200, minStock: 60, costCents: 300 },
   { name: 'Crema', unit: 'litro', stock: 5, minStock: 1.5, costCents: 7000 },
@@ -17,7 +17,7 @@ const INGREDIENTS = [
   { name: 'Cacao', unit: 'kg', stock: 2, minStock: 0.5, costCents: 12000 },
 ];
 
-const PRODUCTS = [
+export const PRODUCTS = [
   { name: 'Quesillo sencillo', category: 'Quesillo', priceCents: 6000, recipe: { 'Queso fresco': 0.12, 'Tortilla': 1, 'Crema': 0.02, 'Cebolla encurtida': 0.03, 'Vinagre': 0.01 } },
   { name: 'Quesillo con crema', category: 'Quesillo', priceCents: 7500, recipe: { 'Queso fresco': 0.15, 'Tortilla': 1, 'Crema': 0.04, 'Cebolla encurtida': 0.03, 'Vinagre': 0.01 } },
   { name: 'Quesillo doble', category: 'Quesillo', priceCents: 9000, recipe: { 'Queso fresco': 0.22, 'Tortilla': 1, 'Crema': 0.04, 'Cebolla encurtida': 0.03, 'Vinagre': 0.01 } },

@@ -71,6 +71,22 @@ Al primer arranque se siembran (idempotente):
 - **Insumos** (queso, tortilla, crema, cebolla, vinagre, chile, tiste, cacao) con stock y minimo.
 - **Productos** (quesillo sencillo/con crema/doble, tiste, cacao, fresco) con sus recetas.
 
+### Poblacion historica (demostracion)
+
+Para la demostracion con datos representativos hay un generador de historial:
+
+```bash
+npm run seed:history              # ~3 meses (90 dias, ~30 clientes/dia, ~2800 ventas)
+npm run seed:history -- --days=30 # ajustar la ventana
+```
+
+Genera ventas con seleccion aleatoria de productos (pesos realistas), descuenta
+insumos por receta, registra movimientos de `CONSUMO` y reposiciones `ENTRADA`
+en tiempos oportunos (compra matutina al caer bajo el doble del minimo, mas
+reposiciones urgentes si una venta no alcanza), y crea/resuelve alertas de
+stock bajo. Requiere la base base ya sembrada (arrancar la app una vez) y
+**reinicia** el historial transaccional antes de generar.
+
 
 ## Estructura del proyecto
 
@@ -97,6 +113,7 @@ centrodelquesillo/
 │   ├── integration/       # API y transacciones contra PostgreSQL real
 │   └── helpers/           # Dobles de prueba
 ├── docs/                  # Arquitectura, modelo de datos, justificacion, pruebas
+├── scripts/               # Utilidades (poblacion historica de demostracion)
 ├── Dockerfile
 └── docker-compose.yml
 ```
