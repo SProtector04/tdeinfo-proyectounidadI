@@ -12,18 +12,18 @@
     <h1>Productos del menu</h1>
     <div class="card" id="products"></div>
 
-    <div id="admin-section" style="display:none">
+    <div id="admin-section" class="hidden">
       <h2>Nuevo producto</h2>
       <div class="card">
         <form id="product-form">
           <div class="row">
             <div><label>Nombre</label><input id="p-name" required /></div>
-            <div><label>Categoria</label><input id="p-category" required /></div>
+            <div><label>Categoría</label><input id="p-category" required /></div>
             <div><label>Precio (cordobas)</label><input id="p-price" type="number" min="0" step="0.01" required /></div>
           </div>
           <label>Receta (insumos consumidos por unidad)</label>
           <div id="recipe-rows"></div>
-          <div class="row" style="margin-top: 8px">
+          <div class="row mt-8">
             <div>
               <label>Insumo</label>
               <select id="r-ingredient"></select>
@@ -32,7 +32,7 @@
             <div><button type="button" id="add-recipe" class="ghost">Agregar insumo</button></div>
           </div>
           <p id="error" class="error"></p>
-          <button type="submit" style="margin-top: 12px">Crear producto</button>
+          <button type="submit" class="mt-12">Crear producto</button>
         </form>
       </div>
     </div>

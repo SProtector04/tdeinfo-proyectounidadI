@@ -123,6 +123,14 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
 .row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
 .row > div { flex: 1; min-width: 140px; }
 
+/* Utilidades de espaciado (sustituyen estilos inline) */
+.mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.form-hint { margin-top: 16px; font-size: 0.8rem; }
+.btn-block { width: 100%; }
+.hidden { display: none; }
+
 .auth-wrap { max-width: 360px; margin: 80px auto; }
 
 .bars { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
@@ -134,3 +142,128 @@ label { display: block; font-size: 0.85rem; color: var(--muted); margin: 8px 0 4
   position: relative;
 }
 .bars .bar span { position: absolute; bottom: -18px; font-size: 0.7rem; color: var(--muted); width: 100%; text-align: center; }
+
+/* Toasts de confirmacion / error */
+#toast-root {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  max-width: min(360px, calc(100vw - 32px));
+}
+.toast {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.12);
+  animation: toast-in 0.2s ease-out;
+  border: 1px solid transparent;
+}
+.toast.success { background: #dcfce7; color: var(--accent); border-color: #bbf7d0; }
+.toast.error { background: #fee2e2; color: var(--danger); border-color: #fecaca; }
+.toast.info { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Indicador de carga */
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -2px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Filas de productos y alertas */
+.product-row { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.product-row:last-child { border-bottom: none; }
+.recipe-line { font-size: 0.82rem; }
+
+.alert-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-date { font-size: 0.8rem; }
+.alert-message { margin-top: 4px; }
+
+/* Pantalla de mostrador (ventas) */
+.qty-cell { display: flex; align-items: center; gap: 6px; }
+.qty-cell input { max-width: 72px; text-align: center; }
+.qty-btn {
+  background: var(--surface);
+  color: var(--primary-dark);
+  border: 1px solid var(--primary);
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+.sale-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.sale-total { font-size: 1.25rem; }
+.sale-total strong { color: var(--primary-dark); }
+.sale-actions { display: flex; gap: 8px; }
+
+.ticket h2 { margin-top: 0; }
+.ticket-total { font-size: 1.1rem; text-align: right; }
+
+@media print {
+  body * { visibility: hidden; }
+  #ticket, #ticket * { visibility: visible; }
+  #ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none;
+  }
+  #print-ticket { display: none; }
+}
+
+/* Paginacion y filtros */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: -6px 0 16px;
+}
+.filters { display: flex; gap: 6px; margin-bottom: 12px; }
+.filters button.active { background: var(--primary); color: #fff; }
+
+/* Responsive: tablas con scroll horizontal en pantallas chicas */
+.card { overflow-x: auto; }
+@media (max-width: 720px) {
+  main { margin: 16px auto; padding: 0 12px; }
+  header.top { padding: 10px 12px; gap: 10px; }
+  h1 { font-size: 1.2rem; }
+  .sale-footer { flex-direction: column; align-items: stretch; }
+  .sale-actions { justify-content: stretch; }
+  .sale-actions button { flex: 1; }
+  .qty-cell input { max-width: 56px; }
+}

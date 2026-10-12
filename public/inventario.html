@@ -21,7 +21,7 @@
             <label>Cantidad</label><input id="a-qty" type="number" min="0" step="0.001" required />
             <label>Motivo</label><input id="a-reason" placeholder="Compra a proveedor" />
             <p id="add-error" class="error"></p>
-            <button type="submit" style="margin-top: 10px">Registrar entrada</button>
+            <button type="submit" class="mt-10">Registrar entrada</button>
           </form>
         </div>
       </div>
@@ -33,7 +33,7 @@
             <label>Stock objetivo</label><input id="j-target" type="number" min="0" step="0.001" required />
             <label>Motivo</label><input id="j-reason" placeholder="Conteo fisico / merma" />
             <p id="adjust-error" class="error"></p>
-            <button type="submit" style="margin-top: 10px">Ajustar</button>
+            <button type="submit" class="mt-10">Ajustar</button>
           </form>
         </div>
       </div>
@@ -41,6 +41,7 @@
 
     <h2>Movimientos recientes</h2>
     <div class="card" id="movements"></div>
+    <div class="pager" id="movements-pager"></div>
   </main>
   <script type="module" src="/js/inventario.js"></script>
 </body>

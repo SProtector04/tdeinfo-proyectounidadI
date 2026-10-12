@@ -1,32 +1,38 @@
-import { api, formatMoney } from './api.js';
+import { api } from './api.js';
 import { renderNav, getCurrentUser, setError } from './common.js';
+import { toast, withSubmitting, escapeHtml, placeholder } from './ui.js';
 
 const user = await getCurrentUser();
 await renderNav('/productos.html');
 
-const [products, ingredients] = await Promise.all([api('/products'), api('/ingredients')]);
+const productsEl = document.getElementById('products');
+placeholder(productsEl, 'Cargando productos');
+
+const [ingredients] = await Promise.all([api('/ingredients')]);
 const ingredientNames = new Map(ingredients.map((i) => [i.id, i.name]));
 
-function renderProducts() {
-  document.getElementById('products').innerHTML = products
+async function renderProducts() {
+  const products = await api('/products');
+  productsEl.innerHTML = products
     .map(
       (p) => `
-      <div style="border-bottom:1px solid #e7dfd3; padding:8px 0">
-        <strong>${p.name}</strong>
-        <span class="muted">(${p.category})</span> - <strong>${p.formattedPrice}</strong>
-        <div class="muted" style="font-size:0.82rem">
-          ${p.recipe.length ? 'Receta: ' + p.recipe.map((r) => `${ingredientNames.get(r.ingredientId) ?? '#' + r.ingredientId} ${r.quantity}`).join(', ') : 'Sin receta (no consume inventario)'}
+      <div class="product-row">
+        <strong>${escapeHtml(p.name)}</strong>
+        <span class="muted">(${escapeHtml(p.category)})</span> - <strong>${escapeHtml(p.formattedPrice)}</strong>
+        <div class="muted recipe-line">
+          ${p.recipe.length ? 'Receta: ' + p.recipe.map((r) => `${escapeHtml(ingredientNames.get(r.ingredientId) ?? '#' + r.ingredientId)} ${r.quantity}`).join(', ') : 'Sin receta (no consume inventario)'}
         </div>
       </div>`,
     )
     .join('');
 }
-renderProducts();
+
+await renderProducts();
 
 if (user.role === 'ADMIN') {
-  document.getElementById('admin-section').style.display = 'block';
+  document.getElementById('admin-section').classList.remove('hidden');
   const select = document.getElementById('r-ingredient');
-  select.innerHTML = ingredients.map((i) => `<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+  select.innerHTML = ingredients.map((i) => `<option value="${i.id}">${escapeHtml(i.name)} (${escapeHtml(i.unit)})</option>`).join('');
 
   const recipe = new Map(); // ingredientId -> quantity
   const recipeRows = document.getElementById('recipe-rows');
@@ -35,7 +41,7 @@ if (user.role === 'ADMIN') {
       .map(
         ([id, qty]) => `
         <div class="row">
-          <span>${ingredientNames.get(id)}</span>
+          <span>${escapeHtml(ingredientNames.get(id))}</span>
           <span>${qty}</span>
           <button type="button" data-remove="${id}" class="ghost">Quitar</button>
         </div>`,
@@ -57,7 +63,8 @@ if (user.role === 'ADMIN') {
     renderRecipe();
   });
 
-  document.getElementById('product-form').addEventListener('submit', async (e) => {
+  const form = document.getElementById('product-form');
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById('error');
     setError(errorEl, '');
@@ -69,8 +76,14 @@ if (user.role === 'ADMIN') {
       recipe: [...recipe.entries()].map(([ingredientId, quantity]) => ({ ingredientId, quantity })),
     };
     try {
-      await api('/products', { method: 'POST', body: payload });
-      window.location.reload();
+      await withSubmitting(form, async () => {
+        await api('/products', { method: 'POST', body: payload });
+        form.reset();
+        recipe.clear();
+        renderRecipe();
+        toast(`Producto "${payload.name}" creado.`);
+        await renderProducts();
+      });
     } catch (err) {
       setError(errorEl, err.message);
     }

@@ -10,6 +10,11 @@
   <div id="nav"></div>
   <main>
     <h1>Alertas y recomendaciones</h1>
+    <div class="filters" id="alert-filters">
+      <button type="button" data-status="" class="active">Todas</button>
+      <button type="button" data-status="OPEN">Abiertas</button>
+      <button type="button" data-status="RESOLVED">Resueltas</button>
+    </div>
     <div class="card" id="alerts"></div>
   </main>
   <script type="module" src="/js/alertas.js"></script>
